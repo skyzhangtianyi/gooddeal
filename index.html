@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>DealFinder</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GoodDeal">
+<meta name="theme-color" content="#ffffff">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;margin:0;padding:0;min-height:100vh;}
+.phone{width:100%;max-width:600px;background:#fff;display:flex;flex-direction:column;height:100vh;position:fixed;top:0;left:0;right:0;bottom:0;}
+@media(max-width:500px){
+  body{padding:0;background:#fff;align-items:flex-start;}
+  .phone{max-width:100%;width:100%;height:100vh;height:100dvh;border-radius:0;box-shadow:none;}
+  .status{display:none;}
+}
+.status{padding:16px 28px 6px;display:flex;justify-content:space-between;align-items:center;}
+.status-time{font-size:15px;font-weight:600;color:#000;}
+.status-icons{font-size:11px;color:#333;}
+.topbar{padding:calc(10px + env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:center;}
+.switch-track{width:220px;height:38px;background:#f0f0f5;border-radius:99px;position:relative;cursor:pointer;}
+.switch-thumb{position:absolute;top:3px;left:3px;width:107px;height:32px;background:#fff;border-radius:99px;box-shadow:0 1px 4px rgba(0,0,0,0.15);transition:transform 0.25s cubic-bezier(.4,0,.2,1);}
+.switch-thumb.right{transform:translateX(107px);}
+.switch-labels{position:absolute;inset:0;display:flex;z-index:2;pointer-events:none;}
+.sw-lbl{flex:1;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;transition:color 0.2s;}
+.sw-lbl.active{color:#1a56db;}
+.sw-lbl.inactive{color:#999;}
+.scroll-body{flex:1;overflow-y:auto;padding-bottom:80px;-webkit-overflow-scrolling:touch;}
+@media(max-width:500px){.scroll-body{height:auto;padding-bottom:100px;}}
+.add-zip{display:flex;align-items:center;justify-content:center;gap:6px;margin:2px 16px 14px;padding:10px;border:1.5px dashed #d0d0d8;border-radius:12px;font-size:13px;color:#888;cursor:pointer;background:transparent;}
+.add-zip:hover{background:#f7f7fa;}
+.zip-block{margin:0 16px 18px;}
+.zip-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;cursor:pointer;padding:2px 0;}
+.zip-code{font-size:20px;font-weight:700;color:#000;letter-spacing:-0.3px;}
+.zip-loc{font-size:12px;color:#888;margin-top:2px;}
+.zip-right{display:flex;align-items:flex-start;gap:8px;}
+.stars-col{display:flex;flex-direction:column;gap:5px;align-items:flex-end;}
+.star-tag{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;}
+.star-tag.rent{background:#e1f5ee;color:#085041;}
+.star-tag.growth{background:#eeedfe;color:#3c3489;}
+.stars{font-size:10px;letter-spacing:0.5px;}
+.expand-arrow{font-size:12px;color:#bbb;margin-top:6px;transition:transform 0.2s;}
+.expand-arrow.open{transform:rotate(180deg);}
+.horiz{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.horiz::-webkit-scrollbar{display:none;}
+.pcard{min-width:175px;max-width:175px;background:#fff;border:0.5px solid #e0e0e8;border-radius:14px;overflow:hidden;flex-shrink:0;cursor:pointer;transition:border-color 0.15s;}
+.pcard:hover{border-color:#aaa;}
+.pcard-img{width:100%;height:96px;background:#f5f5f8;display:flex;align-items:center;justify-content:center;}
+.pcard-body{padding:9px 10px;}
+.pcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:4px;margin-bottom:2px;}
+.pcard-addr{font-size:11px;color:#666;flex:1;line-height:1.3;}
+.for-sale{font-size:9px;font-weight:700;color:#a32d2d;background:#fcebeb;padding:2px 6px;border-radius:99px;white-space:nowrap;flex-shrink:0;}
+.pcard-price{font-size:15px;font-weight:700;color:#000;margin-bottom:3px;}
+.pcard-area{font-size:11px;color:#aaa;margin-bottom:7px;}
+.ptags{display:flex;flex-wrap:wrap;gap:3px;}
+.ptag{font-size:9px;padding:3px 7px;border-radius:99px;font-weight:600;}
+.ptag.g{background:#e1f5ee;color:#085041;}
+.ptag.r{background:#eeedfe;color:#3c3489;}
+.ptag.roi{background:#faeeda;color:#633806;}
+.divider{height:0.5px;background:#ebebeb;margin:0 16px 18px;}
+.expanded{display:none;padding:4px 0 8px;}
+.expanded.open{display:block;}
+.list-item{display:flex;gap:10px;padding:10px 0;border-bottom:0.5px solid #f0f0f0;cursor:pointer;align-items:center;}
+.list-item:last-child{border-bottom:none;}
+.list-thumb{width:56px;height:48px;border-radius:8px;background:#f5f5f8;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.list-info{flex:1;min-width:0;}
+.list-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;}
+.list-addr{font-size:12px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+.list-price{font-size:14px;font-weight:700;color:#000;margin-bottom:4px;}
+.list-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;justify-content:center;align-items:flex-end;}
+.detail-sheet{background:#fff;width:100%;max-width:600px;border-radius:28px 28px 0 0;max-height:93vh;overflow-y:auto;padding-bottom:40px;}
+@media(max-width:500px){.detail-sheet{max-width:100%;border-radius:24px 24px 0 0;}}
+.overlay.open{display:flex;}
+.detail-sheet{background:#fff;width:100%;max-width:600px;border-radius:28px 28px 0 0;max-height:93vh;overflow-y:auto;padding-bottom:48px;}
+.detail-handle{width:40px;height:4px;background:#e0e0e0;border-radius:99px;margin:12px auto 8px;}
+.detail-hero{height:160px;background:#f5f5f8;margin:0 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;}
+.detail-header{padding:12px 16px 0;}
+.d-addr{font-size:12px;color:#888;margin-bottom:3px;}
+.d-price-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.d-price{font-size:22px;font-weight:700;color:#000;}
+.d-meta{font-size:12px;color:#aaa;margin-bottom:14px;}
+.d-section{margin:0 16px 14px;}
+.d-label{font-size:10px;color:#aaa;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;}
+.ai-card{background:#e6f1fb;border-radius:14px;padding:14px 15px;}
+.ai-line{display:flex;gap:8px;margin-bottom:7px;align-items:flex-start;}
+.ai-line:last-child{margin-bottom:0;}
+.ai-num{width:18px;height:18px;border-radius:50%;background:#1a56db;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.ai-text{font-size:13px;color:#0c447c;line-height:1.55;}
+.roi-card{background:#fff;border:0.5px solid #e8e8f0;border-radius:14px;overflow:hidden;}
+.roi-top{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:0.5px solid #f0f0f0;}
+.roi-m{padding:11px 6px;text-align:center;}
+.roi-m:not(:last-child){border-right:0.5px solid #f0f0f0;}
+.roi-v{font-size:16px;font-weight:700;color:#000;margin-bottom:2px;}
+.roi-l{font-size:10px;color:#aaa;}
+.sliders{padding:12px 14px;border-bottom:0.5px solid #f0f0f0;}
+.sl-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.sl-row:last-child{margin-bottom:0;}
+.sl-lbl{font-size:11px;color:#777;width:68px;flex-shrink:0;}
+.sl-val{font-size:11px;font-weight:600;color:#000;width:50px;text-align:right;flex-shrink:0;}
+input[type=range]{flex:1;accent-color:#1a56db;}
+.roi-rows{padding:2px 0;}
+.roi-row{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;}
+.roi-rl{font-size:12px;color:#666;}
+.roi-rs{font-size:10px;color:#aaa;margin-top:1px;}
+.roi-rv{font-size:13px;font-weight:600;}
+.roi-rv.pos{color:#0f6e56;}
+.roi-rv.neg{color:#a32d2d;}
+.roi-rv.neu{color:#000;}
+.roi-div{height:0.5px;background:#f5f5f5;margin:0 14px;}
+.auto-pill{font-size:9px;padding:1px 5px;border-radius:99px;background:#f0f0f5;color:#aaa;margin-left:5px;}
+.rental-card{background:#fff;border:0.5px solid #e8e8f0;border-radius:14px;overflow:hidden;}
+.r-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:0.5px solid #f5f5f5;gap:8px;}
+.r-item:last-child{border-bottom:none;}
+.r-left{flex:1;min-width:0;}
+.r-addr{font-size:12px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.r-meta{font-size:10px;color:#aaa;margin-top:2px;display:flex;gap:5px;align-items:center;}
+.dist{font-size:9px;padding:1px 5px;border-radius:99px;background:#f0f0f5;color:#777;}
+.r-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.r-price{font-size:13px;font-weight:700;color:#000;}
+.rented{font-size:9px;padding:2px 6px;border-radius:99px;background:#e1f5ee;color:#085041;font-weight:600;}
+.contact-card{background:#fff;border:0.5px solid #e8e8f0;border-radius:14px;overflow:hidden;}
+.c-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:0.5px solid #f5f5f5;}
+.c-item:last-child{border-bottom:none;}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.c-info{flex:1;min-width:0;}
+.c-name{font-size:13px;font-weight:600;color:#000;}
+.c-sub{font-size:11px;color:#888;margin-top:1px;}
+.c-stats{font-size:10px;color:#aaa;margin-top:1px;}
+.email-btn{width:32px;height:32px;border-radius:50%;border:0.5px solid #e0e0e8;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;flex-shrink:0;}
+.email-btn:hover{background:#f5f5f5;}
+.redfin-btn{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fff;border:0.5px solid #e0e0e8;border-radius:14px;padding:13px 16px;cursor:pointer;text-align:left;}
+.redfin-btn:hover{background:#f9f9f9;}
+.redfin-logo{width:32px;height:32px;border-radius:8px;background:#fcebeb;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rf-text{font-size:13px;font-weight:600;color:#000;}
+.rf-sub{font-size:11px;color:#888;margin-top:2px;}
+.close-btn{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;background:#f0f0f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
+.tab-bar{border-top:0.5px solid #ebebeb;padding:10px 0 calc(20px + env(safe-area-inset-bottom));display:flex;background:#fff;position:fixed;bottom:0;left:0;right:0;z-index:10;}
+@media(max-width:500px){.tab-bar{position:fixed;bottom:0;left:0;right:0;padding-bottom:max(20px,env(safe-area-inset-bottom));}}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+.tab-lbl{font-size:10px;color:#aaa;}
+.tab.active .tab-lbl{color:#1a56db;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status" style="display:none;"></div>
+  <div class="topbar">
+    <div class="switch-track" onclick="toggleSwitch()">
+      <div class="switch-thumb" id="thumb"></div>
+      <div class="switch-labels">
+        <div class="sw-lbl active" id="lbl-inv">投资房</div>
+        <div class="sw-lbl inactive" id="lbl-sch">学区房</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-body" id="main"></div>
+  <div class="scroll-body" id="school-main" style="display:none;"></div>
+  <div class="tab-bar">
+    <div class="tab active">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 9L10 2l8 7v9a1 1 0 01-1 1H3a1 1 0 01-1-1V9z" stroke="#1a56db" stroke-width="1.3"/></svg>
+      <div class="tab-lbl" style="color:#1a56db;">发现</div>
+    </div>
+    <div class="tab">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 5 5.6.8-4 3.9.9 5.5L10 14.5l-4.9 2.7.9-5.5L2 7.8l5.6-.8z" stroke="#aaa" stroke-width="1.3"/></svg>
+      <div class="tab-lbl">收藏</div>
+    </div>
+    <div class="tab" id="tab-calc" onclick="openCalc()">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="3" stroke="#aaa" stroke-width="1.3"/><path d="M6 10h8M6 6h8M6 14h4" stroke="#aaa" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <div class="tab-lbl">计算器</div>
+    </div>
+    <div class="tab">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="#aaa" stroke-width="1.3"/><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#aaa" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <div class="tab-lbl">我的</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeDetail(event)">
+  <div class="detail-sheet" id="detail-sheet">
+    <div style="position:relative;">
+      <button class="close-btn" onclick="closeOverlay()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="#555" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <div class="detail-handle"></div>
+      <div class="detail-hero">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="opacity:0.2"><path d="M4 22L24 5l20 17v22a1 1 0 01-1 1H5a1 1 0 01-1-1V22z" stroke="#333" stroke-width="1.5"/><path d="M17 46V30h14v16" stroke="#333" stroke-width="1.5"/></svg>
+      </div>
+      <div class="detail-header">
+        <div class="d-addr" id="d-addr"></div>
+        <div class="d-price-row"><span class="d-price" id="d-price"></span><span class="for-sale">For Sale</span></div>
+        <div class="d-meta" id="d-meta"></div>
+      </div>
+      <div class="d-section">
+        <div class="d-label">AI 智能分析</div>
+        <div class="ai-card">
+          <div class="ai-line"><div class="ai-num">1</div><div class="ai-text" id="ai1"></div></div>
+          <div class="ai-line"><div class="ai-num">2</div><div class="ai-text" id="ai2"></div></div>
+          <div class="ai-line"><div class="ai-num">3</div><div class="ai-text" id="ai3"></div></div>
+        </div>
+      </div>
+      <div class="d-section">
+        <div class="d-label">投资回报分析</div>
+        <div class="roi-card">
+          <div class="roi-top">
+            <div class="roi-m"><div class="roi-v" id="d-roi" style="color:#0f6e56;">—</div><div class="roi-l">综合 ROI</div></div>
+            <div class="roi-m"><div class="roi-v" id="d-yield">—</div><div class="roi-l">租金回报率</div></div>
+            <div class="roi-m"><div class="roi-v" id="d-cf">—</div><div class="roi-l">月现金流</div></div>
+          </div>
+          <div class="sliders">
+            <div class="sl-row"><span class="sl-lbl">首付比例</span><input type="range" min="10" max="40" step="1" value="20" id="sl-dp" oninput="recalc()"><span class="sl-val" id="v-dp">20%</span></div>
+            <div class="sl-row"><span class="sl-lbl">预期月租</span><input type="range" min="500" max="6000" step="50" value="2000" id="sl-rent" oninput="recalc()"><span class="sl-val" id="v-rent">$2,000</span></div>
+            <div class="sl-row"><span class="sl-lbl">贷款利率</span><input type="range" min="4" max="9" step="0.1" value="6.75" id="sl-rate" oninput="recalc()"><span class="sl-val" id="v-rate">6.8%</span></div>
+            <div class="sl-row"><span class="sl-lbl">边际税率</span><input type="range" min="10" max="45" step="1" value="35" id="sl-tax" oninput="recalc()"><span class="sl-val" id="v-tax">35%</span></div>
+            <div class="sl-row"><span class="sl-lbl">年化增值率</span><input type="range" min="0" max="15" step="0.5" value="4" id="sl-appr" oninput="recalc()"><span class="sl-val" id="v-appr">4.0%</span></div>
+          </div>
+          <div class="roi-rows">
+            <div class="roi-row"><span class="roi-rl">首付现金</span><span class="roi-rv neu" id="r-dp">—</span></div>
+            <div class="roi-div"></div>
+            <div class="roi-row"><span class="roi-rl">每月房贷 (P&amp;I)</span><span class="roi-rv neg" id="r-mort">—</span></div>
+            <div class="roi-div"></div>
+            <div class="roi-row"><span class="roi-rl">预期月租金</span><span class="roi-rv pos" id="r-rent">—</span></div>
+            <div class="roi-div"></div>
+            <div class="roi-row">
+              <div><div class="roi-rl">每月持有成本 <span class="auto-pill">自动</span></div><div class="roi-rs" id="r-hd">地税 — · 保险 — · HOA —</div></div>
+              <span class="roi-rv neg" id="r-holding">—</span>
+            </div>
+            <div class="roi-div"></div>
+            <div class="roi-row"><span class="roi-rl">月净现金流</span><span class="roi-rv" id="r-cf2">—</span></div>
+            <div class="roi-div"></div>
+            <div class="roi-row"><span class="roi-rl">年度税务抵扣</span><span class="roi-rv pos" id="r-tax">—</span></div>
+            <div class="roi-div"></div>
+            <div class="roi-row"><span class="roi-rl">年度资产增值</span><span class="roi-rv pos" id="r-appr">—</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="d-section">
+        <div class="d-label">附近近期租出（Zillow）</div>
+        <div class="rental-card" id="rental-list"></div>
+      </div>
+      <div class="d-section">
+        <div class="d-label">区域 Top Agent</div>
+        <div class="contact-card" id="agent-list"></div>
+      </div>
+      <div class="d-section">
+        <div class="d-label">区域 Top Property Management</div>
+        <div class="contact-card" id="pm-list"></div>
+      </div>
+      <div class="d-section">
+        <div class="d-label">房源详情</div>
+        <button class="redfin-btn" id="redfin-link">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="redfin-logo"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.8 3.6L14 6.3l-3 2.9.7 4.1L8 11.4l-3.7 1.9.7-4.1-3-2.9 4.2-.7z" fill="#a32d2d"/></svg></div>
+            <div><div class="rf-text">在 Redfin 查看完整信息</div><div class="rf-sub">房屋历史、学区、建筑详情</div></div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="#aaa" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA=[{zip:"85296",city:"Gilbert",state:"AZ",rent_stars:4,growth_stars:5,appreciation:7.2,rental_yield:5.8,holding:{tax_rate:0.0085,insurance:110,hoa:180},agents:[{name:"Sarah Chen",init:"SC",brokerage:"Realty ONE Group",spec:"Gilbert 投资专区",deals:41,avg_price:620000,email:"sarah.chen@royg.com",color:"#e6f1fb",tc:"#0c447c"},{name:"Mike Torres",init:"MT",brokerage:"Coldwell Banker",spec:"Phoenix East Valley",deals:33,avg_price:580000,email:"mike.torres@cb.com",color:"#e1f5ee",tc:"#085041"}],pms:[{name:"Gilbert Premier PM",init:"GP",units:280,vacancy:3.8,fee:8,email:"info@gilbertppm.com",color:"#faeeda",tc:"#633806"},{name:"AZ Rental Group",init:"AR",units:210,vacancy:4.2,fee:9,email:"hello@azrg.com",color:"#eeedfe",tc:"#3c3489"}],listings:[{addr:"3421 E Pecos Rd",price:589000,beds:4,baths:2,sqft:1980,appreciation:7.5,yield:5.9,roi:22,rent:2900,hoa:180,nearby:[{addr:"3380 E Pecos Rd #B",beds:4,sqft:1950,rent:2950,days:8,dist:0.1},{addr:"912 S Higley Rd #3",beds:3,sqft:1750,rent:2700,days:14,dist:0.3},{addr:"3501 E Williams Field",beds:4,sqft:2000,rent:3050,days:21,dist:0.2}],redfin:"https://www.redfin.com/AZ/Gilbert"},{addr:"1845 S Higley Rd",price:545000,beds:3,baths:2,sqft:1720,appreciation:7.1,yield:6.1,roi:23,rent:2770,hoa:150,nearby:[{addr:"1820 S Higley Rd #A",beds:3,sqft:1700,rent:2800,days:11,dist:0.1},{addr:"1900 E Ray Rd #5",beds:3,sqft:1650,rent:2650,days:19,dist:0.4},{addr:"1780 S Higley Rd",beds:3,sqft:1740,rent:2820,days:28,dist:0.1}],redfin:"https://www.redfin.com/AZ/Gilbert"},{addr:"4020 E Williams Field",price:625000,beds:4,baths:3,sqft:2200,appreciation:7.3,yield:5.7,roi:21,rent:2980,hoa:200,nearby:[{addr:"4010 E Williams Field #2",beds:4,sqft:2150,rent:3000,days:9,dist:0.1},{addr:"3920 E Williams Field",beds:4,sqft:2100,rent:2900,days:16,dist:0.2},{addr:"4100 S Greenfield Rd",beds:4,sqft:2250,rent:3100,days:25,dist:0.3}],redfin:"https://www.redfin.com/AZ/Gilbert"},{addr:"2210 S Recker Rd",price:498000,beds:3,baths:2,sqft:1600,appreciation:6.9,yield:6.2,roi:24,rent:2580,hoa:120,nearby:[{addr:"2190 S Recker Rd",beds:3,sqft:1580,rent:2600,days:13,dist:0.1},{addr:"2300 E Germann Rd #4",beds:3,sqft:1550,rent:2520,days:22,dist:0.3},{addr:"2150 S Recker Rd #B",beds:3,sqft:1620,rent:2650,days:30,dist:0.1}],redfin:"https://www.redfin.com/AZ/Gilbert"},{addr:"3680 S Greenfield Rd",price:672000,beds:5,baths:3,sqft:2450,appreciation:7.6,yield:5.5,roi:20,rent:3080,hoa:220,nearby:[{addr:"3650 S Greenfield Rd",beds:5,sqft:2400,rent:3100,days:7,dist:0.1},{addr:"3720 E Ray Rd",beds:4,sqft:2200,rent:2950,days:18,dist:0.2},{addr:"3600 S Greenfield Rd #2",beds:5,sqft:2500,rent:3200,days:26,dist:0.1}],redfin:"https://www.redfin.com/AZ/Gilbert"}]},{zip:"85225",city:"Chandler",state:"AZ",rent_stars:4,growth_stars:4,appreciation:5.8,rental_yield:6.0,holding:{tax_rate:0.0082,insurance:105,hoa:160},agents:[{name:"Lisa Park",init:"LP",brokerage:"Keller Williams",spec:"Chandler 科技走廊",deals:38,avg_price:490000,email:"lisa.park@kw.com",color:"#e6f1fb",tc:"#0c447c"},{name:"David Wu",init:"DW",brokerage:"HomeSmart",spec:"East Valley 专区",deals:29,avg_price:455000,email:"david.wu@homesmart.com",color:"#e1f5ee",tc:"#085041"}],pms:[{name:"Chandler Homes PM",init:"CH",units:240,vacancy:4.0,fee:8,email:"info@chandlerhpm.com",color:"#faeeda",tc:"#633806"},{name:"Valley Property Mgmt",init:"VP",units:190,vacancy:4.5,fee:8.5,email:"hello@valleypm.com",color:"#eeedfe",tc:"#3c3489"}],listings:[{addr:"1245 W Galveston St",price:468000,beds:3,baths:2,sqft:1620,appreciation:5.9,yield:6.2,roi:22,rent:2420,hoa:160,nearby:[{addr:"1220 W Galveston St",beds:3,sqft:1600,rent:2450,days:10,dist:0.1},{addr:"1300 S Arizona Ave #4",beds:3,sqft:1580,rent:2380,days:17,dist:0.3},{addr:"1260 W Galveston St #B",beds:3,sqft:1640,rent:2470,days:24,dist:0.1}],redfin:"https://www.redfin.com/AZ/Chandler"},{addr:"820 N Dobson Rd",price:512000,beds:4,baths:2,sqft:1880,appreciation:6.0,yield:5.9,roi:21,rent:2520,hoa:150,nearby:[{addr:"800 N Dobson Rd #2",beds:4,sqft:1850,rent:2550,days:12,dist:0.1},{addr:"880 N Dobson Rd",beds:3,sqft:1700,rent:2380,days:20,dist:0.2},{addr:"750 N Dobson Rd #A",beds:4,sqft:1900,rent:2600,days:29,dist:0.2}],redfin:"https://www.redfin.com/AZ/Chandler"},{addr:"2340 W Germann Rd",price:435000,beds:3,baths:2,sqft:1520,appreciation:5.7,yield:6.3,roi:23,rent:2290,hoa:140,nearby:[{addr:"2320 W Germann Rd",beds:3,sqft:1500,rent:2310,days:9,dist:0.1},{addr:"2400 S Price Rd #3",beds:3,sqft:1480,rent:2250,days:16,dist:0.3},{addr:"2360 W Germann Rd #B",beds:3,sqft:1540,rent:2340,days:23,dist:0.1}],redfin:"https://www.redfin.com/AZ/Chandler"},{addr:"3120 S Price Rd",price:489000,beds:4,baths:2,sqft:1750,appreciation:5.8,yield:6.0,roi:22,rent:2450,hoa:165,nearby:[{addr:"3100 S Price Rd #A",beds:4,sqft:1720,rent:2480,days:11,dist:0.1},{addr:"3180 S Price Rd",beds:3,sqft:1600,rent:2300,days:19,dist:0.2},{addr:"3050 S Price Rd #2",beds:4,sqft:1780,rent:2510,days:27,dist:0.2}],redfin:"https://www.redfin.com/AZ/Chandler"},{addr:"4580 W Ray Rd",price:445000,beds:3,baths:2,sqft:1580,appreciation:5.6,yield:6.1,roi:22,rent:2260,hoa:145,nearby:[{addr:"4560 W Ray Rd",beds:3,sqft:1560,rent:2280,days:13,dist:0.1},{addr:"4620 W Ray Rd #3",beds:3,sqft:1540,rent:2230,days:21,dist:0.1},{addr:"4500 S Dobson Rd #B",beds:3,sqft:1600,rent:2320,days:30,dist:0.3}],redfin:"https://www.redfin.com/AZ/Chandler"}]},{zip:"85234",city:"Mesa",state:"AZ",rent_stars:5,growth_stars:3,appreciation:4.5,rental_yield:6.8,holding:{tax_rate:0.008,insurance:100,hoa:130},agents:[{name:"James Liu",init:"JL",brokerage:"RE/MAX",spec:"Mesa East 专区",deals:45,avg_price:420000,email:"james.liu@remax.com",color:"#e6f1fb",tc:"#0c447c"},{name:"Anna Rodriguez",init:"AR",brokerage:"Realty ONE",spec:"Phoenix Metro 投资",deals:36,avg_price:395000,email:"anna.r@royg.com",color:"#e1f5ee",tc:"#085041"}],pms:[{name:"Mesa Elite PM",init:"ME",units:310,vacancy:3.5,fee:8,email:"info@mesaelitepm.com",color:"#faeeda",tc:"#633806"},{name:"SunState Rentals",init:"SS",units:255,vacancy:4.0,fee:8.5,email:"hello@sunstaterentals.com",color:"#eeedfe",tc:"#3c3489"}],listings:[{addr:"1820 S Greenfield Rd",price:398000,beds:3,baths:2,sqft:1520,appreciation:4.6,yield:6.9,roi:21,rent:2290,hoa:130,nearby:[{addr:"1800 S Greenfield Rd #A",beds:3,sqft:1500,rent:2310,days:8,dist:0.1},{addr:"1880 S Greenfield Rd",beds:3,sqft:1480,rent:2250,days:15,dist:0.2},{addr:"1750 S Greenfield Rd #3",beds:3,sqft:1540,rent:2340,days:22,dist:0.2}],redfin:"https://www.redfin.com/AZ/Mesa"},{addr:"2450 E Baseline Rd",price:365000,beds:3,baths:2,sqft:1420,appreciation:4.4,yield:7.0,roi:22,rent:2130,hoa:120,nearby:[{addr:"2430 E Baseline Rd",beds:3,sqft:1400,rent:2150,days:10,dist:0.1},{addr:"2500 E Baseline Rd #2",beds:3,sqft:1380,rent:2090,days:18,dist:0.1},{addr:"2380 E Baseline Rd #B",beds:3,sqft:1440,rent:2180,days:26,dist:0.2}],redfin:"https://www.redfin.com/AZ/Mesa"},{addr:"3560 S Higley Rd",price:425000,beds:4,baths:2,sqft:1680,appreciation:4.7,yield:6.7,roi:20,rent:2370,hoa:140,nearby:[{addr:"3540 S Higley Rd",beds:4,sqft:1660,rent:2400,days:9,dist:0.1},{addr:"3620 S Higley Rd #3",beds:3,sqft:1520,rent:2210,days:17,dist:0.2},{addr:"3500 S Higley Rd #A",beds:4,sqft:1700,rent:2420,days:24,dist:0.1}],redfin:"https://www.redfin.com/AZ/Mesa"},{addr:"4120 E Southern Ave",price:345000,beds:3,baths:2,sqft:1360,appreciation:4.3,yield:7.2,roi:23,rent:2070,hoa:110,nearby:[{addr:"4100 E Southern Ave",beds:3,sqft:1340,rent:2090,days:12,dist:0.1},{addr:"4180 E Southern Ave #2",beds:3,sqft:1320,rent:2030,days:20,dist:0.1},{addr:"4050 E Southern Ave #B",beds:3,sqft:1380,rent:2110,days:28,dist:0.2}],redfin:"https://www.redfin.com/AZ/Mesa"},{addr:"2890 S Power Rd",price:412000,beds:4,baths:2,sqft:1650,appreciation:4.5,yield:6.8,roi:21,rent:2340,hoa:135,nearby:[{addr:"2870 S Power Rd #A",beds:4,sqft:1630,rent:2360,days:11,dist:0.1},{addr:"2930 S Power Rd",beds:3,sqft:1500,rent:2200,days:19,dist:0.2},{addr:"2820 S Power Rd #3",beds:4,sqft:1670,rent:2390,days:27,dist:0.2}],redfin:"https://www.redfin.com/AZ/Mesa"}]},{zip:"85719",city:"Tucson",state:"AZ",rent_stars:5,growth_stars:3,appreciation:4.2,rental_yield:7.5,holding:{tax_rate:0.0072,insurance:90,hoa:80},agents:[{name:"Carlos Mendez",init:"CM",brokerage:"Long Realty",spec:"Tucson University 专区",deals:52,avg_price:310000,email:"c.mendez@longrealty.com",color:"#e6f1fb",tc:"#0c447c"},{name:"Emily Stone",init:"ES",brokerage:"Tierra Antigua",spec:"中区投资专家",deals:40,avg_price:285000,email:"emily.s@tierraantigua.com",color:"#e1f5ee",tc:"#085041"}],pms:[{name:"Tucson Rental Pro",init:"TP",units:420,vacancy:3.2,fee:8,email:"info@tucsonrentalpro.com",color:"#faeeda",tc:"#633806"},{name:"Desert Sky PM",init:"DS",units:350,vacancy:3.8,fee:8.5,email:"hello@desertskyrm.com",color:"#eeedfe",tc:"#3c3489"}],listings:[{addr:"1245 N Euclid Ave",price:285000,beds:3,baths:1,sqft:1180,appreciation:4.3,yield:7.6,roi:24,rent:1810,hoa:80,nearby:[{addr:"1220 N Euclid Ave",beds:3,sqft:1160,rent:1830,days:7,dist:0.1},{addr:"1280 N Euclid Ave #2",beds:3,sqft:1140,rent:1780,days:14,dist:0.1},{addr:"1195 N Euclid Ave",beds:3,sqft:1200,rent:1860,days:21,dist:0.1}],redfin:"https://www.redfin.com/AZ/Tucson"},{addr:"820 E Speedway Blvd",price:248000,beds:2,baths:1,sqft:980,appreciation:4.1,yield:7.8,roi:25,rent:1610,hoa:70,nearby:[{addr:"800 E Speedway Blvd #A",beds:2,sqft:960,rent:1630,days:9,dist:0.1},{addr:"860 E Speedway Blvd",beds:2,sqft:940,rent:1580,days:16,dist:0.1},{addr:"780 E Speedway Blvd #3",beds:2,sqft:1000,rent:1660,days:23,dist:0.1}],redfin:"https://www.redfin.com/AZ/Tucson"},{addr:"1560 N Campbell Ave",price:312000,beds:3,baths:2,sqft:1280,appreciation:4.4,yield:7.4,roi:23,rent:1930,hoa:85,nearby:[{addr:"1540 N Campbell Ave",beds:3,sqft:1260,rent:1950,days:11,dist:0.1},{addr:"1600 N Campbell Ave #2",beds:3,sqft:1240,rent:1890,days:18,dist:0.1},{addr:"1510 N Campbell Ave #B",beds:3,sqft:1300,rent:1980,days:26,dist:0.1}],redfin:"https://www.redfin.com/AZ/Tucson"},{addr:"2340 E Grant Rd",price:268000,beds:3,baths:1,sqft:1120,appreciation:4.2,yield:7.6,roi:24,rent:1700,hoa:75,nearby:[{addr:"2320 E Grant Rd",beds:3,sqft:1100,rent:1720,days:10,dist:0.1},{addr:"2380 E Grant Rd #3",beds:3,sqft:1080,rent:1670,days:17,dist:0.1},{addr:"2300 E Grant Rd #A",beds:3,sqft:1140,rent:1740,days:25,dist:0.1}],redfin:"https://www.redfin.com/AZ/Tucson"},{addr:"980 N Stone Ave",price:295000,beds:3,baths:2,sqft:1200,appreciation:4.3,yield:7.5,roi:24,rent:1848,hoa:80,nearby:[{addr:"960 N Stone Ave #A",beds:3,sqft:1180,rent:1870,days:8,dist:0.1},{addr:"1020 N Stone Ave",beds:3,sqft:1160,rent:1820,days:15,dist:0.1},{addr:"940 N Stone Ave #2",beds:3,sqft:1220,rent:1900,days:22,dist:0.1}],redfin:"https://www.redfin.com/AZ/Tucson"}]},{zip:"94080",city:"South San Francisco",state:"CA",rent_stars:3,growth_stars:5,appreciation:8.5,rental_yield:3.8,holding:{tax_rate:0.011,insurance:180,hoa:350},agents:[{name:"Jennifer Zhao",init:"JZ",brokerage:"Compass",spec:"Peninsula 豪宅专区",deals:28,avg_price:1280000,email:"j.zhao@compass.com",color:"#e6f1fb",tc:"#0c447c"},{name:"Kevin Nguyen",init:"KN",brokerage:"Coldwell Banker",spec:"Bay Area 投资房",deals:22,avg_price:1150000,email:"k.nguyen@cb.com",color:"#e1f5ee",tc:"#085041"}],pms:[{name:"Bay Area Property Co",init:"BP",units:180,vacancy:2.8,fee:9,email:"info@bayareapco.com",color:"#faeeda",tc:"#633806"},{name:"Peninsula Rentals",init:"PR",units:140,vacancy:3.0,fee:10,email:"hello@peninsularentals.com",color:"#eeedfe",tc:"#3c3489"}],listings:[{addr:"120 Arroyo Dr",price:1180000,beds:3,baths:2,sqft:1420,appreciation:8.8,yield:3.9,roi:18,rent:3840,hoa:350,nearby:[{addr:"108 Arroyo Dr",beds:3,sqft:1400,rent:3900,days:9,dist:0.1},{addr:"135 Arroyo Dr #2",beds:3,sqft:1380,rent:3780,days:16,dist:0.2},{addr:"95 Arroyo Dr",beds:3,sqft:1440,rent:3950,days:24,dist:0.2}],redfin:"https://www.redfin.com/CA/South-San-Francisco"},{addr:"540 Baden Ave",price:1080000,beds:3,baths:1,sqft:1280,appreciation:8.4,yield:3.8,roi:17,rent:3420,hoa:300,nearby:[{addr:"520 Baden Ave",beds:3,sqft:1260,rent:3460,days:11,dist:0.1},{addr:"560 Baden Ave #A",beds:3,sqft:1240,rent:3380,days:19,dist:0.1},{addr:"500 Baden Ave",beds:3,sqft:1300,rent:3500,days:27,dist:0.1}],redfin:"https://www.redfin.com/CA/South-San-Francisco"},{addr:"1820 El Camino Real",price:1320000,beds:4,baths:2,sqft:1680,appreciation:9.0,yield:3.7,roi:17,rent:4080,hoa:380,nearby:[{addr:"1800 El Camino Real #2",beds:4,sqft:1660,rent:4120,days:8,dist:0.1},{addr:"1850 El Camino Real",beds:3,sqft:1500,rent:3800,days:15,dist:0.1},{addr:"1780 El Camino Real #B",beds:4,sqft:1700,rent:4200,days:22,dist:0.1}],redfin:"https://www.redfin.com/CA/South-San-Francisco"},{addr:"310 Grand Ave",price:1050000,beds:3,baths:2,sqft:1240,appreciation:8.2,yield:4.0,roi:18,rent:3500,hoa:320,nearby:[{addr:"295 Grand Ave",beds:3,sqft:1220,rent:3530,days:12,dist:0.1},{addr:"330 Grand Ave #3",beds:3,sqft:1200,rent:3460,days:20,dist:0.1},{addr:"280 Grand Ave #A",beds:3,sqft:1260,rent:3580,days:28,dist:0.1}],redfin:"https://www.redfin.com/CA/South-San-Francisco"},{addr:"450 Linden Ave",price:1240000,beds:4,baths:2,sqft:1560,appreciation:8.7,yield:3.8,roi:18,rent:3930,hoa:360,nearby:[{addr:"435 Linden Ave",beds:4,sqft:1540,rent:3970,days:10,dist:0.1},{addr:"465 Linden Ave #2",beds:3,sqft:1400,rent:3700,days:17,dist:0.1},{addr:"420 Linden Ave #B",beds:4,sqft:1580,rent:4020,days:25,dist:0.1}],redfin:"https://www.redfin.com/CA/South-San-Francisco"}]},{zip:"94401",city:"San Mateo",state:"CA",rent_stars:3,growth_stars:5,appreciation:9.2,rental_yield:3.5,holding:{tax_rate:0.011,insurance:200,hoa:420},agents:[{name:"Michelle Lee",init:"ML",brokerage:"Compass",spec:"San Mateo 豪宅",deals:24,avg_price:1680000,email:"m.lee@compass.com",color:"#e6f1fb",tc:"#0c447c"},{name:"Robert Kim",init:"RK",brokerage:"Intero RE",spec:"Peninsula 投资",deals:18,avg_price:1520000,email:"r.kim@intero.com",color:"#e1f5ee",tc:"#085041"}],pms:[{name:"San Mateo Prop Mgmt",init:"SM",units:150,vacancy:2.5,fee:10,email:"info@sanmateoPM.com",color:"#faeeda",tc:"#633806"},{name:"Bay Premier Rentals",init:"BR",units:120,vacancy:2.8,fee:11,email:"hello@baypremier.com",color:"#eeedfe",tc:"#3c3489"}],listings:[{addr:"225 S Claremont St",price:1580000,beds:3,baths:2,sqft:1520,appreciation:9.4,yield:3.5,roi:17,rent:4610,hoa:420,nearby:[{addr:"210 S Claremont St",beds:3,sqft:1500,rent:4650,days:10,dist:0.1},{addr:"240 S Claremont St #2",beds:3,sqft:1480,rent:4550,days:17,dist:0.1},{addr:"195 S Claremont St",beds:3,sqft:1540,rent:4700,days:25,dist:0.1}],redfin:"https://www.redfin.com/CA/San-Mateo"},{addr:"810 N Delaware St",price:1450000,beds:3,baths:2,sqft:1420,appreciation:9.0,yield:3.6,roi:17,rent:4350,hoa:400,nearby:[{addr:"795 N Delaware St",beds:3,sqft:1400,rent:4390,days:11,dist:0.1},{addr:"830 N Delaware St #A",beds:3,sqft:1380,rent:4280,days:19,dist:0.1},{addr:"780 N Delaware St #2",beds:3,sqft:1440,rent:4440,days:27,dist:0.1}],redfin:"https://www.redfin.com/CA/San-Mateo"},{addr:"1240 S El Camino Real",price:1720000,beds:4,baths:2,sqft:1750,appreciation:9.5,yield:3.4,roi:16,rent:4880,hoa:450,nearby:[{addr:"1220 S El Camino Real",beds:4,sqft:1730,rent:4920,days:8,dist:0.1},{addr:"1260 S El Camino Real #3",beds:3,sqft:1580,rent:4600,days:15,dist:0.1},{addr:"1200 S El Camino Real #B",beds:4,sqft:1770,rent:4980,days:23,dist:0.1}],redfin:"https://www.redfin.com/CA/San-Mateo"},{addr:"380 W 20th Ave",price:1380000,beds:3,baths:2,sqft:1360,appreciation:8.8,yield:3.6,roi:17,rent:4140,hoa:390,nearby:[{addr:"365 W 20th Ave",beds:3,sqft:1340,rent:4180,days:12,dist:0.1},{addr:"395 W 20th Ave #2",beds:3,sqft:1320,rent:4080,days:20,dist:0.1},{addr:"350 W 20th Ave #A",beds:3,sqft:1380,rent:4220,days:28,dist:0.1}],redfin:"https://www.redfin.com/CA/San-Mateo"},{addr:"540 Laurel Ave",price:1650000,beds:4,baths:3,sqft:1820,appreciation:9.3,yield:3.5,roi:16,rent:4812,hoa:440,nearby:[{addr:"525 Laurel Ave",beds:4,sqft:1800,rent:4850,days:9,dist:0.1},{addr:"555 Laurel Ave #2",beds:3,sqft:1650,rent:4560,days:16,dist:0.1},{addr:"510 Laurel Ave #B",beds:4,sqft:1840,rent:4920,days:24,dist:0.1}],redfin:"https://www.redfin.com/CA/San-Mateo"}]}];
+
+let currentProp=null;
+function stars(n){return'★'.repeat(n)+'☆'.repeat(5-n);}
+function icon(){return'<svg width="28" height="28" viewBox="0 0 28 28" fill="none" style="opacity:0.2"><path d="M2 13L14 3l12 10v13a1 1 0 01-1 1H3a1 1 0 01-1-1V13z" stroke="#333" stroke-width="1.3"/><path d="M10 27V19h8v8" stroke="#333" stroke-width="1.3"/></svg>';}
+
+// ── calculator ──
+let loanType = {id:'f30', total:30, io:0};
+let amortOpen = false;
+
+function openCalc(){
+  document.getElementById('calc-overlay').style.display='flex';
+  selectLoanMode('fixed');
+  calcMortgage();
+  calcInvest();
+}
+function closeCalc(e){
+  if(!e||e.target===document.getElementById('calc-overlay'))
+    document.getElementById('calc-overlay').style.display='none';
+}
+function switchCalcTab(tab){
+  document.getElementById('calc-mortgage').style.display=tab==='mortgage'?'block':'none';
+  document.getElementById('calc-invest').style.display=tab==='invest'?'block':'none';
+  document.getElementById('ctab-mortgage').style.background=tab==='mortgage'?'#fff':'transparent';
+  document.getElementById('ctab-mortgage').style.color=tab==='mortgage'?'#1a56db':'#888';
+  document.getElementById('ctab-invest').style.background=tab==='invest'?'#fff':'transparent';
+  document.getElementById('ctab-invest').style.color=tab==='invest'?'#1a56db':'#888';
+}
+let loanMode='fixed';
+function selectLoanMode(mode){
+  loanMode=mode;
+  const fixedRow=document.getElementById('lt-fixed');
+  const ioRow=document.getElementById('lt-io');
+  const fixedDot=document.getElementById('lt-dot-fixed');
+  const ioDot=document.getElementById('lt-dot-io');
+  if(mode==='fixed'){
+    fixedRow.style.background='#e6f1fb';fixedRow.style.borderColor='#1a56db';
+    fixedDot.style.background='#1a56db';fixedDot.style.borderColor='#1a56db';
+    fixedDot.innerHTML='<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>';
+    ioRow.style.background='#fff';ioRow.style.borderColor='#e0e0e8';
+    ioDot.style.background='#fff';ioDot.style.borderColor='#d0d0d8';ioDot.innerHTML='';
+    document.getElementById('m-io-note').style.display='none';
+  } else {
+    ioRow.style.background='#e6f1fb';ioRow.style.borderColor='#1a56db';
+    ioDot.style.background='#1a56db';ioDot.style.borderColor='#1a56db';
+    ioDot.innerHTML='<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>';
+    fixedRow.style.background='#fff';fixedRow.style.borderColor='#e0e0e8';
+    fixedDot.style.background='#fff';fixedDot.style.borderColor='#d0d0d8';fixedDot.innerHTML='';
+    const ioYrs=parseInt(document.getElementById('io-io-yrs').value)||10;
+    const note=document.getElementById('m-io-note');
+    const iotxt=document.getElementById('m-io-text');
+    note.style.display='block';
+    iotxt.textContent='头'+ioYrs+'年每月只还利息，第'+(ioYrs+1)+'年起按剩余本金重新摊销，月供会显著跳升。';
+  }
+  calcMortgage();
+}
+function selectLoanType(id,total,io){ selectLoanMode(io>0?'io':'fixed'); }
+
+function pmtCalc(r,n,pv){
+  if(r===0)return pv/n;
+  return pv*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+}
+
+function fmt$(n){return '$'+Math.round(n).toLocaleString();}
+
+function calcMortgage(){
+  const price=parseFloat(document.getElementById('m-price').value)||0;
+  const dpPct=parseFloat(document.getElementById('m-dp').value)||20;
+  const annualRate=parseFloat(document.getElementById('m-rate').value)||6.75;
+  const dp=price*dpPct/100;
+  const loan=price-dp;
+  const r=annualRate/100/12;
+  const total=loanMode==='fixed'
+    ? (parseInt(document.getElementById('fixed-yrs').value)||30)
+    : (parseInt(document.getElementById('io-total-yrs').value)||30);
+  const io=loanMode==='io'
+    ? (parseInt(document.getElementById('io-io-yrs').value)||10)
+    : 0;
+
+  document.getElementById('m-dp-amt').textContent=fmt$(dp);
+  document.getElementById('m-loan').textContent=fmt$(loan);
+
+  let p1Val, p2Val, totalInt, totalPay;
+
+  if(io===0){
+    // Pure fixed
+    const n=total*12;
+    const monthly=pmtCalc(r,n,loan);
+    p1Val=monthly; p2Val=monthly;
+    totalPay=monthly*n;
+    totalInt=totalPay-loan;
+    document.getElementById('m-p1-label').textContent=total+'年固定月供';
+    document.getElementById('m-p1-sub').textContent='本金+利息';
+    document.getElementById('m-p2-label').textContent='总月数';
+    document.getElementById('m-p2-val').textContent=n+' 期';
+    document.getElementById('m-p2-sub').textContent='共'+total+'年';
+    document.getElementById('m-p1-val').textContent=fmt$(p1Val);
+    document.getElementById('m-p2-label').style.display='none';
+    document.getElementById('m-p2-val').style.display='none';
+    document.getElementById('m-p2-sub').style.display='none';
+    // reuse p2 for total pay display
+    document.getElementById('m-p2-label').style.display='block';
+    document.getElementById('m-p2-val').style.display='block';
+    document.getElementById('m-p2-sub').style.display='block';
+    document.getElementById('m-p2-label').textContent='每月还款';
+    document.getElementById('m-p2-val').textContent=fmt$(monthly);
+    document.getElementById('m-p2-sub').textContent='固定'+total+'年';
+  } else {
+    // IO period
+    const ioMonthly=loan*r;
+    const remainN=(total-io)*12;
+    const piMonthly=pmtCalc(r,remainN,loan); // after IO, same principal
+    const ioTotal=ioMonthly*io*12;
+    const piTotal=piMonthly*remainN;
+    totalPay=ioTotal+piTotal;
+    totalInt=totalPay-loan;
+    p1Val=ioMonthly; p2Val=piMonthly;
+    document.getElementById('m-p1-label').textContent='IO期月供 (前'+io+'年)';
+    document.getElementById('m-p1-sub').textContent='只还利息';
+    document.getElementById('m-p2-label').textContent='还本期月供 (第'+(io+1)+'年起)';
+    document.getElementById('m-p2-sub').textContent='本金+利息·涨幅 '+(((piMonthly-ioMonthly)/ioMonthly)*100).toFixed(0)+'%';
+    document.getElementById('m-p1-label').style.display='block';
+    document.getElementById('m-p2-label').style.display='block';
+    document.getElementById('m-p2-val').style.display='block';
+    document.getElementById('m-p2-sub').style.display='block';
+    document.getElementById('m-p1-val').textContent=fmt$(p1Val);
+    document.getElementById('m-p2-val').textContent=fmt$(p2Val);
+  }
+
+  document.getElementById('m-total-int').textContent=fmt$(totalInt);
+  document.getElementById('m-total-pay').textContent=fmt$(totalPay);
+
+  // build amortization table
+  buildAmort(loan,r,loanType.total,loanType.io);
+}
+
+function buildAmort(loan,r,totalYrs,ioYrs){
+  const rows=document.getElementById('amort-rows');
+  if(!rows)return;
+  let bal=loan; let html=''; let month=0;
+  const totalMonths=totalYrs*12;
+  const ioMonths=ioYrs*12;
+  const piN=totalMonths-ioMonths;
+  const piPayment=piN>0?pmtCalc(r,piN,loan):pmtCalc(r,totalMonths,loan);
+
+  for(let yr=1;yr<=totalYrs;yr++){
+    let yrPrinc=0,yrInt=0,monthPay;
+    for(let m=0;m<12;m++){
+      month++;
+      if(month>totalMonths)break;
+      const intPart=bal*r;
+      if(month<=ioMonths){
+        monthPay=intPart;
+        yrInt+=intPart;
+      } else {
+        monthPay=piPayment;
+        const princPart=monthPay-intPart;
+        yrPrinc+=princPart;
+        yrInt+=intPart;
+        bal-=princPart;
+      }
+    }
+    const tag=yr<=ioYrs&&ioYrs>0?'<span style="font-size:8px;background:#faeeda;color:#633806;padding:1px 4px;border-radius:4px;margin-left:3px;">IO</span>':'';
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;padding:8px 12px;border-bottom:0.5px solid #f5f5f5;align-items:center;">
+      <div style="font-size:12px;color:#333;">第${yr}年${tag}</div>
+      <div style="font-size:12px;color:#333;">${fmt$(yr<=ioYrs&&ioYrs>0?loan*r:piPayment)}</div>
+      <div style="font-size:12px;color:#0f6e56;">${fmt$(yrPrinc)}</div>
+      <div style="font-size:12px;color:#555;">${fmt$(bal)}</div>
+    </div>`;
+  }
+  rows.innerHTML=html;
+}
+
+function toggleAmort(){
+  amortOpen=!amortOpen;
+  document.getElementById('amort-table').style.display=amortOpen?'block':'none';
+  document.getElementById('amort-arrow').style.transform=amortOpen?'rotate(180deg)':'';
+}
+
+function updateTaxFromRate(){
+  const price=parseFloat(document.getElementById('i-price').value)||0;
+  const rate=parseFloat(document.getElementById('i-tax-rate').value)||1.1;
+  const monthly=Math.round(price*rate/100/12);
+  document.getElementById('i-tax-monthly').textContent='$'+monthly.toLocaleString();
+  calcInvest();
+}
+
+function lookupTaxRate(){
+  const zip=document.getElementById('i-tax-zip').value.trim();
+  if(!zip){return;}
+  // Simplified zip-to-rate lookup (real version hits API)
+  const rates={'94080':1.15,'94401':1.12,'85296':0.85,'85225':0.82,'85234':0.80,'85719':0.72,'78701':1.80,'33101':1.10};
+  const rate=rates[zip]||1.1;
+  document.getElementById('i-tax-rate').value=rate.toFixed(2);
+  updateTaxFromRate();
+  const el=document.getElementById('i-tax-monthly');
+  el.style.color='#1a56db';
+  setTimeout(()=>el.style.color='#000',1500);
+}
+
+function openInsuranceInfo(){
+  document.getElementById('insurance-overlay').style.display='flex';
+}
+function closeInsuranceInfo(e){
+  if(!e||e.target===document.getElementById('insurance-overlay'))
+    document.getElementById('insurance-overlay').style.display='none';
+}
+
+function calcInvest(){
+  const price=parseFloat(document.getElementById('i-price').value)||0;
+  const rent=parseFloat(document.getElementById('i-rent').value)||0;
+  const taxRate=parseFloat(document.getElementById('i-tax-rate').value)||1.1;
+  const taxMonthly=price*taxRate/100/12;
+  const insurance=parseFloat(document.getElementById('i-insurance').value)||150;
+  const hoa=parseFloat(document.getElementById('i-hoa').value)||200;
+  const hold=taxMonthly+insurance+hoa;
+  const taxPct=parseFloat(document.getElementById('i-tax').value)||35;
+  document.getElementById('i-tax-monthly').textContent='$'+Math.round(taxMonthly).toLocaleString();
+  const dp=parseFloat(document.getElementById('i-dp').value)||20;
+  const rate=parseFloat(document.getElementById('i-rate').value)||6.75;
+  const appr=parseFloat(document.getElementById('i-appr').value)||5;
+
+  document.getElementById('i-dp-lbl').textContent=dp+'%';
+  document.getElementById('i-rate-lbl').textContent=rate.toFixed(2)+'%';
+  document.getElementById('i-appr-lbl').textContent=appr.toFixed(1)+'%';
+
+  const down=price*dp/100;
+  const loan=price-down;
+  const r=rate/100/12;
+  const monthly=pmtCalc(r,360,loan);
+  const cf=rent-monthly-hold;
+  const depreciation=(price*0.8)/27.5;
+  const taxBen=depreciation*taxPct/100;
+  const apprVal=price*appr/100;
+  const totalReturn=cf*12+taxBen+apprVal;
+  const roi=down>0?totalReturn/down*100:0;
+  const yld=price>0?rent*12/price*100:0;
+
+  document.getElementById('i-roi').textContent=Math.round(roi)+'%';
+  document.getElementById('i-yield').textContent=yld.toFixed(1)+'%';
+  document.getElementById('i-cf').textContent=(cf>=0?'+':'')+fmt$(cf);
+  document.getElementById('i-down').textContent=fmt$(down);
+  document.getElementById('i-mort').textContent='-'+fmt$(monthly);
+  document.getElementById('i-hold-display').textContent='-'+fmt$(hold);
+  document.getElementById('i-taxben').textContent='+'+fmt$(taxBen);
+  document.getElementById('i-apprval').textContent='+'+fmt$(apprVal);
+}
+
+// ── saved/liked properties ──
+let savedProps = [];
+// watching zips (can remove)
+let watchingZips = DATA.map(z=>z.zip);
+
+function renderSavedRow(){
+  const wrap = document.getElementById('saved-row-wrap');
+  if(!wrap) return;
+  // Always show the row with at least the add card
+  let cards = `<div style="margin:0 0 4px;">
+    <div style="font-size:11px;color:#aaa;letter-spacing:0.05em;padding:0 16px;margin-bottom:8px;">关注房源</div>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;">
+      <div onclick="openAddProp()" style="min-width:100px;max-width:100px;height:100px;flex-shrink:0;border:1.5px dashed #d0d0d8;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;background:#fafafa;">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span style="font-size:10px;color:#bbb;text-align:center;line-height:1.3;">添加<br>房源</span>
+      </div>
+      ${savedProps.map((p,i)=>`
+        <div style="min-width:100px;max-width:100px;height:100px;flex-shrink:0;background:#fff;border:0.5px solid #e0e0e8;border-radius:14px;padding:8px;cursor:pointer;position:relative;display:flex;flex-direction:column;justify-content:space-between;" onclick="openSavedDetail(${i})">
+          <div style="position:absolute;top:5px;right:5px;">
+            ${p.type==='added'
+              ?'<span style=\"font-size:8px;font-weight:700;background:#eeedfe;color:#3c3489;padding:2px 5px;border-radius:99px;\">我的</span>'
+              :'<span style=\"font-size:8px;font-weight:700;background:#fcebeb;color:#a32d2d;padding:2px 5px;border-radius:99px;\">♥ 喜爱</span>'
+            }
+          </div>
+          <div style="font-size:10px;color:#555;line-height:1.3;margin-top:14px;overflow:hidden;max-height:30px;">${p.addr}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#000;">${p.price?'$'+(p.price/1000).toFixed(0)+'K':'—'}</div>
+            <div style="font-size:9px;color:#aaa;">${p.zip||'—'} · ROI ${p.roi||'—'}%</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+  wrap.innerHTML = cards;
+}
+
+const SUGGESTED_ZIPS=[
+  {zip:'78701',city:'Austin, TX',   note:'租金回报率 5.8%',badge:'高租金'},
+  {zip:'85296',city:'Gilbert, AZ',  note:'年均增值 7.2%',  badge:'高增值'},
+  {zip:'33101',city:'Miami, FL',    note:'增值 9.5%',      badge:'高增值'},
+  {zip:'75041',city:'Garland, TX',  note:'租金回报率 8.1%',badge:'高租金'},
+  {zip:'80203',city:'Denver, CO',   note:'均衡回报 ROI 19%',badge:'综合优'},
+];
+
+function openAddZip(){
+  document.getElementById('addzip-overlay').style.display='flex';
+  document.getElementById('addzip-input').value='';
+  // render suggested list
+  const list = document.getElementById('suggested-zips-list');
+  if(list){
+    list.innerHTML = SUGGESTED_ZIPS.map(s=>`
+      <div onclick="pickSuggestedZip('${s.zip}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f7f7fa;border-radius:12px;cursor:pointer;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#000;">${s.zip} <span style="font-size:11px;color:#888;font-weight:400;">· ${s.city}</span></div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">${s.note}</div>
+        </div>
+        <div style="font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;background:#e6f1fb;color:#0c447c;">${s.badge}</div>
+      </div>
+    `).join('');
+  }
+  setTimeout(()=>document.getElementById('addzip-input').focus(),100);
+}
+function closeAddZip(e){
+  if(!e||e.target===document.getElementById('addzip-overlay'))
+    document.getElementById('addzip-overlay').style.display='none';
+}
+function pickSuggestedZip(zip){
+  document.getElementById('addzip-input').value=zip;
+}
+function submitAddZip(){
+  const val = document.getElementById('addzip-input').value.trim();
+  if(!val){alert('请输入 zip code');return;}
+  if(watchingZips.includes(val)){alert(val+' 已在关注列表');return;}
+  watchingZips.push(val);
+  alert('已添加 '+val+'！（接入 API 后将展示真实数据）');
+  closeAddZip();
+  renderMain();
+  renderSavedRow();
+}
+
+function openManageZips(){
+  document.getElementById('managezips-overlay').style.display='flex';
+  renderManageZips();
+}
+function closeManageZips(e){
+  if(!e||e.target===document.getElementById('managezips-overlay'))
+    document.getElementById('managezips-overlay').style.display='none';
+}
+function renderManageZips(){
+  const list = document.getElementById('managezips-list');
+  if(!list)return;
+  list.innerHTML = watchingZips.map(z=>{
+    const found = DATA.find(d=>d.zip===z);
+    const label = found ? found.city+', '+found.state : z;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid #f5f5f5;">
+      <div>
+        <div style="font-size:14px;font-weight:500;color:#000;">${z}</div>
+        <div style="font-size:12px;color:#aaa;">${label}</div>
+      </div>
+      <div onclick="removeZip('${z}')" style="font-size:12px;color:#a32d2d;cursor:pointer;padding:6px 10px;border:0.5px solid #f0d0d0;border-radius:8px;">取消关注</div>
+    </div>`;
+  }).join('') || '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px;">暂无关注的 zip code</div>';
+}
+function removeZip(zip){
+  watchingZips = watchingZips.filter(z=>z!==zip);
+  renderManageZips();
+  renderMain();
+  renderSavedRow();
+}
+
+function openAddProp(){
+  document.getElementById('addprop-overlay').style.display='flex';
+  document.getElementById('addprop-addr').value='';
+  document.getElementById('addprop-link').value='';
+  setTimeout(()=>document.getElementById('addprop-addr').focus(),100);
+}
+function closeAddProp(e){
+  if(!e||e.target===document.getElementById('addprop-overlay'))
+    document.getElementById('addprop-overlay').style.display='none';
+}
+function submitAddProp(){
+  const addr = document.getElementById('addprop-addr').value.trim();
+  const link = document.getElementById('addprop-link').value.trim();
+  if(!addr && !link){alert('请输入地址或 Redfin 链接');return;}
+  savedProps.push({type:'added',addr:addr||link,price:0,beds:'—',sqft:'—',zip:'—',city:'—',roi:'—',yield:'—',appreciation:'—'});
+  closeAddProp();
+  renderSavedRow();
+}
+
+function likeProp(zi, pi, e){
+  e.stopPropagation();
+  const z = DATA[zi]; const p = z.listings[pi];
+  const already = savedProps.find(s=>s.addr===p.addr && s.type==='liked');
+  if(already){
+    // unlike
+    savedProps = savedProps.filter(s=>!(s.addr===p.addr && s.type==='liked'));
+    e.currentTarget.querySelector('path').setAttribute('fill','none');
+    e.currentTarget.querySelector('path').setAttribute('stroke','#ccc');
+  } else {
+    savedProps.push({type:'liked',addr:p.addr,price:p.price,beds:p.beds,sqft:p.sqft,zip:z.zip,city:z.city,roi:p.roi,yield:p.yield,appreciation:p.appreciation});
+    e.currentTarget.querySelector('path').setAttribute('fill','#a32d2d');
+    e.currentTarget.querySelector('path').setAttribute('stroke','#a32d2d');
+  }
+  renderSavedRow();
+}
+
+function openSavedDetail(i){
+  const p = savedProps[i];
+  if(p.type==='added' && !p.price){
+    alert('房源：'+p.addr+'\n（接入 API 后将展示完整数据）');
+  } else {
+    openDetail(DATA.findIndex(z=>z.zip===p.zip), DATA.find(z=>z.zip===p.zip)?.listings.findIndex(l=>l.addr===p.addr)||0);
+  }
+}
+
+function renderMain(){
+  // Section 1: saved row placeholder (filled by renderSavedRow)
+  // Section 2: add zip button
+  // Section 3: watching zips header + zip list
+  let h='<div id="saved-row-wrap"></div>';
+  h+='<div class="add-zip" onclick="openAddZip()"><svg viewBox="0 0 14 14" fill="none" width="14" height="14"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>添加 zip code</div>';
+  h+='<div style="padding:0 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;"><span style="font-size:11px;color:#aaa;letter-spacing:0.05em;">正在关注</span><span style="font-size:11px;color:#1a56db;cursor:pointer;" onclick="openManageZips()">管理</span></div>';
+  DATA.forEach((z,zi)=>{
+    h+=`<div class="zip-block"><div class="zip-header" onclick="toggleZip(${zi})"><div><div class="zip-code">${z.zip}</div><div class="zip-loc">${z.city}, ${z.state}</div></div><div class="zip-right"><div class="stars-col"><div class="star-tag rent"><span class="stars">${stars(z.rent_stars)}</span> 租金</div><div class="star-tag growth"><span class="stars">${stars(z.growth_stars)}</span> 增值</div></div><span class="expand-arrow" id="arr-${zi}">▾</span></div></div><div class="horiz">`;
+    z.listings.slice(0,3).forEach((p,pi)=>{
+      h+=`<div class="pcard" onclick="openDetailPage(${zi},${pi})"><div class="pcard-img" style="position:relative;">${icon()}<button onclick="likeProp(${zi},${pi},event)" style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.92);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"><svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 17s-7-4.5-7-9a5 5 0 0110 0 5 5 0 0110 0c0 4.5-7 9-7 9z" stroke="#ccc" stroke-width="1.5"/></svg></button></div><div class="pcard-body"><div class="pcard-top"><span class="pcard-addr">${p.addr}</span><span class="for-sale">For Sale</span></div><div class="pcard-price">$${(p.price/1000).toFixed(0)}K</div><div class="pcard-area">${p.beds}bd · ${p.sqft.toLocaleString()} sqft</div><div class="ptags"><span class="ptag g">增值 ${p.appreciation}%</span><span class="ptag r">租金 ${p.yield}%</span><span class="ptag roi">ROI ${p.roi}%</span></div></div></div>`;
+    });
+    h+=`</div>`;
+    if(z.listings.length>3){
+      h+=`<div class="expanded" id="exp-${zi}">`;
+      z.listings.slice(3).forEach((p,pi)=>{
+        h+=`<div class="list-item" onclick="openDetailPage(${zi},${pi+3})"><div class="list-thumb">${icon()}</div><div class="list-info"><div class="list-top"><span class="list-addr">${p.addr}, ${z.city}</span><span class="for-sale" style="margin-left:6px;flex-shrink:0;">For Sale</span></div><div class="list-price">$${(p.price/1000).toFixed(0)}K · ${p.beds}bd · ${p.sqft.toLocaleString()} sqft</div><div class="list-tags"><span class="ptag g">增值 ${p.appreciation}%</span><span class="ptag r">租金 ${p.yield}%</span><span class="ptag roi">ROI ${p.roi}%</span></div></div></div>`;
+      });
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+    if(zi<DATA.length-1)h+=`<div class="divider"></div>`;
+  });
+  document.getElementById('main').innerHTML=h;
+}
+
+function toggleZip(zi){
+  const el=document.getElementById(`exp-${zi}`);
+  const arr=document.getElementById(`arr-${zi}`);
+  if(!el)return;
+  const open=el.classList.contains('open');
+  el.classList.toggle('open',!open);
+  arr.classList.toggle('open',!open);
+}
+
+function openDetail(zi,pi){
+  const z=DATA[zi]; const p=z.listings[pi];
+  currentProp={z,p};
+  document.getElementById('d-addr').textContent=`${p.addr}, ${z.city}, ${z.state} ${z.zip}`;
+  document.getElementById('d-price').textContent=`$${p.price.toLocaleString()}`;
+  document.getElementById('d-meta').textContent=`${p.beds} bd · ${p.baths} ba · ${p.sqft.toLocaleString()} sqft`;
+  document.getElementById('ai1').textContent=`${z.city} ${z.zip} 过去五年年均增值 ${z.appreciation}%，${z.appreciation>=7?'远高于全美均值，科技产业与人口流入持续驱动上涨':'稳健高于全美均值，就业市场稳定支撑长期房价'}.`;
+  document.getElementById('ai2').textContent=`周边同户型近期租金约 $${Math.round(p.rent*0.95).toLocaleString()}–$${Math.round(p.rent*1.06).toLocaleString()}，租金回报率 ${p.yield}%，${p.yield>=6?'现金流月净正向，现金流表现优秀':'增值主导型市场，长期资产增值显著'}.`;
+  document.getElementById('ai3').textContent=`20% 首付下综合年化 ROI 约 ${p.roi}%，税务折旧每年可抵扣约 $${Math.round(p.price*0.8/27.5*0.35).toLocaleString()}，高收入家庭税务优化空间显著。`;
+  const taxMo=Math.round(p.price*z.holding.tax_rate/12);
+  document.getElementById('r-hd').textContent=`地税 $${taxMo} · 保险 $${z.holding.insurance} · HOA $${p.hoa}`;
+  document.getElementById('sl-rent').min=Math.round(p.rent*0.5/50)*50;
+  document.getElementById('sl-rent').max=Math.round(p.rent*1.8/50)*50;
+  document.getElementById('sl-rent').value=p.rent;
+  document.getElementById('sl-dp').value=20;
+  document.getElementById('sl-rate').value=6.75;
+  document.getElementById('sl-appr').value=z.appreciation;
+  document.getElementById('sl-tax').value=35;
+  let rh='';
+  p.nearby.forEach(r=>{rh+=`<div class="r-item"><div class="r-left"><div class="r-addr">${r.addr}</div><div class="r-meta">${r.beds}bd · ${r.sqft.toLocaleString()} sqft · ${r.days}天前 <span class="dist">${r.dist} mi</span></div></div><div class="r-right"><span class="r-price">$${r.rent.toLocaleString()}/mo</span><span class="rented">已租出</span></div></div>`;});
+  document.getElementById('rental-list').innerHTML=rh;
+  let ah='';
+  z.agents.forEach(a=>{ah+=`<div class="c-item"><div class="avatar" style="background:${a.color};color:${a.tc};">${a.init}</div><div class="c-info"><div class="c-name">${a.name}</div><div class="c-sub">${a.brokerage} · ${a.spec}</div><div class="c-stats">近12月成交 ${a.deals} 套 · 均价 $${(a.avg_price/1000).toFixed(0)}K</div></div><a class="email-btn" href="mailto:${a.email}?subject=Inquiry about ${p.addr} ${z.zip}"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="8" rx="1.5" stroke="#777" stroke-width="1.2"/><path d="M1 4.5l6 3.5 6-3.5" stroke="#777" stroke-width="1.2" stroke-linecap="round"/></svg></a></div>`;});
+  document.getElementById('agent-list').innerHTML=ah;
+  let ph='';
+  z.pms.forEach(pm=>{ph+=`<div class="c-item"><div class="avatar" style="background:${pm.color};color:${pm.tc};">${pm.init}</div><div class="c-info"><div class="c-name">${pm.name}</div><div class="c-sub">管理 ${pm.units}+ 套 · 空置率 ${pm.vacancy}%</div><div class="c-stats">管理费 ${pm.fee}%</div></div><a class="email-btn" href="mailto:${pm.email}?subject=PM Inquiry - ${p.addr} ${z.zip}"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="8" rx="1.5" stroke="#777" stroke-width="1.2"/><path d="M1 4.5l6 3.5 6-3.5" stroke="#777" stroke-width="1.2" stroke-linecap="round"/></svg></a></div>`;});
+  document.getElementById('pm-list').innerHTML=ph;
+  document.getElementById('redfin-link').onclick=()=>window.open(p.redfin,'_blank');
+  recalc();
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('detail-sheet').scrollTop=0;
+}
+
+function pmt(r,n,pv){if(r===0)return pv/n;return pv*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);}
+
+function recalc(){
+  if(!currentProp)return;
+  const{z,p}=currentProp;
+  const dp=parseInt(document.getElementById('sl-dp').value)/100;
+  const rent=parseInt(document.getElementById('sl-rent').value);
+  const rate=parseFloat(document.getElementById('sl-rate').value)/100;
+  const tax=parseInt(document.getElementById('sl-tax').value)/100;
+  document.getElementById('v-dp').textContent=Math.round(dp*100)+'%';
+  document.getElementById('v-rent').textContent='$'+rent.toLocaleString();
+  document.getElementById('v-rate').textContent=(rate*100).toFixed(1)+'%';
+  document.getElementById('v-tax').textContent=Math.round(tax*100)+'%';
+  const apprRate=parseFloat(document.getElementById('sl-appr').value)/100;
+  document.getElementById('v-appr').textContent=(apprRate*100).toFixed(1)+'%';
+  const down=p.price*dp;
+  const monthly=pmt(rate/12,360,p.price-down);
+  const taxMo=Math.round(p.price*z.holding.tax_rate/12);
+  const holding=taxMo+z.holding.insurance+p.hoa;
+  const cf=rent-monthly-holding;
+  const taxBenefit=(p.price*0.8/27.5)*tax;
+  const appr=p.price*apprRate;
+  const roi=(cf*12+taxBenefit+appr)/down*100;
+  const yld=rent*12/p.price*100;
+  document.getElementById('d-roi').textContent=Math.round(roi)+'%';
+  document.getElementById('d-roi').style.color=roi>=18?'#0f6e56':roi>=12?'#ba7517':'#a32d2d';
+  document.getElementById('d-yield').textContent=yld.toFixed(1)+'%';
+  document.getElementById('d-cf').textContent=(cf>=0?'+$':'-$')+Math.abs(Math.round(cf)).toLocaleString();
+  document.getElementById('r-dp').textContent='$'+Math.round(down).toLocaleString();
+  document.getElementById('r-mort').textContent='-$'+Math.round(monthly).toLocaleString();
+  document.getElementById('r-rent').textContent='+$'+rent.toLocaleString();
+  document.getElementById('r-holding').textContent='-$'+holding.toLocaleString();
+  const cfEl=document.getElementById('r-cf2');
+  cfEl.textContent=(cf>=0?'+$':'-$')+Math.abs(Math.round(cf)).toLocaleString();
+  cfEl.className='roi-rv '+(cf>=0?'pos':'neg');
+  document.getElementById('r-tax').textContent='+$'+Math.round(taxBenefit).toLocaleString();
+  document.getElementById('r-appr').textContent='+$'+Math.round(appr).toLocaleString();
+}
+
+let _detailRefin = '';
+function openDetailPage(zi, pi){
+  const z=DATA[zi]; const p=z.listings[pi];
+  _detailRefin = p.redfin;
+  const win = window.open('', '_blank');
+  win._parentRefin = p.redfin;
+  const html = buildDetailHTML(zi, pi);
+  win.document.write(html);
+  win.document.close();
+}
+
+function buildDetailHTML(zi, pi){
+  const z=DATA[zi]; const p=z.listings[pi];
+  const taxMo=Math.round(p.price*z.holding.tax_rate/12);
+  const holding=taxMo+z.holding.insurance+p.hoa;
+  const r=0.0675/12, loan=p.price*0.8;
+  function pmtC(r,n,pv){if(r===0)return pv/n;return pv*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);}
+  const monthly=pmtC(r,360,loan);
+  const cf=p.rent-monthly-holding;
+  const taxBen=(p.price*0.8/27.5)*0.35;
+  const appr=p.price*z.appreciation/100;
+  const roi=(cf*12+taxBen+appr)/(p.price*0.2)*100;
+  const yld=p.rent*12/p.price*100;
+  function f(n){return '$'+Math.round(Math.abs(n)).toLocaleString();}
+  function sign(n){return n>=0?'+':'-';}
+
+  const nearby = p.nearby.map(r=>
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:0.5px solid #f5f5f5;">' +
+    '<div><div style="font-size:12px;color:#555;">'+r.addr+'</div>' +
+    '<div style="font-size:10px;color:#aaa;margin-top:2px;">'+r.beds+'bd · '+r.sqft.toLocaleString()+' sqft · '+r.days+'天前 · '+r.dist+' mi</div></div>' +
+    '<div style="text-align:right"><div style="font-size:13px;font-weight:700;">$'+r.rent.toLocaleString()+'/mo</div>' +
+    '<div style="font-size:9px;background:#e1f5ee;color:#085041;padding:2px 6px;border-radius:99px;display:inline-block;margin-top:2px;">已租出</div></div>' +
+    '</div>'
+  ).join('');
+
+  const agents = z.agents.map(a=>
+    '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:0.5px solid #f5f5f5;">' +
+    '<div style="width:38px;height:38px;border-radius:50%;background:'+a.color+';color:'+a.tc+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">'+a.init+'</div>' +
+    '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#000;">'+a.name+'</div>' +
+    '<div style="font-size:11px;color:#888;">'+a.brokerage+' · '+a.spec+'</div>' +
+    '<div style="font-size:10px;color:#aaa;">近12月成交 '+a.deals+' 套</div></div>' +
+    '<a href="mailto:'+a.email+'" style="width:30px;height:30px;border-radius:50%;border:0.5px solid #e0e0e8;display:flex;align-items:center;justify-content:center;text-decoration:none;">✉</a>' +
+    '</div>'
+  ).join('');
+
+  const pms = z.pms.map(pm=>
+    '<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:0.5px solid #f5f5f5;">' +
+    '<div style="width:38px;height:38px;border-radius:50%;background:'+pm.color+';color:'+pm.tc+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">'+pm.init+'</div>' +
+    '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#000;">'+pm.name+'</div>' +
+    '<div style="font-size:11px;color:#888;">管理 '+pm.units+'+ 套 · 空置率 '+pm.vacancy+'%</div>' +
+    '<div style="font-size:10px;color:#aaa;">管理费 '+pm.fee+'%</div></div>' +
+    '<a href="mailto:'+pm.email+'" style="width:30px;height:30px;border-radius:50%;border:0.5px solid #e0e0e8;display:flex;align-items:center;justify-content:center;text-decoration:none;">✉</a>' +
+    '</div>'
+  ).join('');
+
+  const html = '<!DOCTYPE html><html><head>' +
+    '<meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1.0">' +
+    '<title>' + p.addr + '</title>' +
+    '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f5f8;padding-bottom:40px;}.card{background:#fff;border-radius:16px;border:0.5px solid #e0e0e8;margin:12px 16px 0;overflow:hidden;}.sec-label{font-size:10px;color:#aaa;letter-spacing:0.06em;text-transform:uppercase;margin:16px 16px 8px;}.header{background:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:0.5px solid #e0e0e8;position:sticky;top:0;z-index:10;}.back{width:34px;height:34px;border-radius:50%;border:0.5px solid #e0e0e8;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;font-size:18px;}.pos{color:#0f6e56;font-weight:600;}.neg{color:#a32d2d;font-weight:600;}</style>' +
+    '</head><body>' +
+    '<div class="header">' +
+    '<div class="back" onclick="window.close()">&#8592;</div>' +
+    '<div><div style="font-size:15px;font-weight:700;color:#000;">' + p.addr + '</div>' +
+    '<div style="font-size:12px;color:#888;">' + z.city + ', ' + z.state + ' ' + z.zip + '</div></div>' +
+    '</div>' +
+
+    '<div style="height:180px;background:#f0f0f5;display:flex;align-items:center;justify-content:center;">' +
+    '<svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="opacity:0.2"><path d="M4 22L24 5l20 17v22a1 1 0 01-1 1H5a1 1 0 01-1-1V22z" stroke="#333" stroke-width="1.5"/><path d="M17 46V30h14v16" stroke="#333" stroke-width="1.5"/></svg>' +
+    '</div>' +
+
+    '<div style="padding:14px 16px 0;display:flex;justify-content:space-between;align-items:center;">' +
+    '<div><div style="font-size:24px;font-weight:700;color:#000;">$' + p.price.toLocaleString() + '</div>' +
+    '<div style="font-size:13px;color:#888;margin-top:2px;">' + p.beds + ' bd · ' + p.sqft.toLocaleString() + ' sqft</div></div>' +
+    '<span style="font-size:11px;font-weight:700;color:#a32d2d;background:#fcebeb;padding:4px 10px;border-radius:99px;">For Sale</span>' +
+    '</div>' +
+
+    '<div class="sec-label">AI 智能分析</div>' +
+    '<div style="margin:0 16px;background:#e6f1fb;border-radius:14px;padding:14px;">' +
+    '<div style="display:flex;gap:8px;margin-bottom:8px;"><div style="width:18px;height:18px;border-radius:50%;background:#1a56db;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div><div style="font-size:13px;color:#0c447c;line-height:1.5;">' + z.city + ' ' + z.zip + ' 过去五年年均增值 ' + z.appreciation + '%，' + (z.appreciation>=7?'远高于全美均值，科技产业与人口流入持续驱动上涨':'稳健高于全美均值，就业市场稳定支撑长期房价') + '。</div></div>' +
+    '<div style="display:flex;gap:8px;margin-bottom:8px;"><div style="width:18px;height:18px;border-radius:50%;background:#1a56db;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div><div style="font-size:13px;color:#0c447c;line-height:1.5;">周边同户型近期租金约 $' + Math.round(p.rent*0.95).toLocaleString() + '–$' + Math.round(p.rent*1.06).toLocaleString() + '，租金回报率 ' + p.yield + '%。</div></div>' +
+    '<div style="display:flex;gap:8px;"><div style="width:18px;height:18px;border-radius:50%;background:#1a56db;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div><div style="font-size:13px;color:#0c447c;line-height:1.5;">20% 首付下综合年化 ROI 约 ' + p.roi + '%，税务折旧每年可抵扣约 $' + Math.round(p.price*0.8/27.5*0.35).toLocaleString() + '。</div></div>' +
+    '</div>' +
+
+    '<div class="sec-label">投资回报</div>' +
+    '<div class="card">' +
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:0.5px solid #f0f0f0;">' +
+    '<div style="padding:12px;text-align:center;border-right:0.5px solid #f0f0f0;"><div style="font-size:18px;font-weight:700;color:#0f6e56;">' + Math.round(roi) + '%</div><div style="font-size:10px;color:#aaa;">综合 ROI</div></div>' +
+    '<div style="padding:12px;text-align:center;border-right:0.5px solid #f0f0f0;"><div style="font-size:18px;font-weight:700;color:#000;">' + yld.toFixed(1) + '%</div><div style="font-size:10px;color:#aaa;">租金回报率</div></div>' +
+    '<div style="padding:12px;text-align:center;"><div style="font-size:18px;font-weight:700;color:' + (cf>=0?'#0f6e56':'#a32d2d') + ';">' + sign(cf) + f(cf) + '</div><div style="font-size:10px;color:#aaa;">月现金流</div></div>' +
+    '</div>' +
+    '<div style="padding:4px 0;">' +
+    '<div style="display:flex;justify-content:space-between;padding:9px 14px;border-bottom:0.5px solid #f5f5f5;"><span style="font-size:13px;color:#666;">首付现金 (20%)</span><span style="font-size:13px;font-weight:600;">$' + Math.round(p.price*0.2).toLocaleString() + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:9px 14px;border-bottom:0.5px solid #f5f5f5;"><span style="font-size:13px;color:#666;">每月房贷</span><span class="neg">-' + f(monthly) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:9px 14px;border-bottom:0.5px solid #f5f5f5;"><span style="font-size:13px;color:#666;">预期月租金</span><span class="pos">+$' + p.rent.toLocaleString() + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:9px 14px;border-bottom:0.5px solid #f5f5f5;"><div><div style="font-size:13px;color:#666;">每月持有成本</div><div style="font-size:10px;color:#aaa;">地税 $'+taxMo.toLocaleString()+' · 保险 $'+z.holding.insurance+' · HOA $'+p.hoa+'</div></div><span class="neg">-' + f(holding) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:9px 14px;border-bottom:0.5px solid #f5f5f5;"><span style="font-size:13px;color:#666;">月净现金流</span><span class="' + (cf>=0?'pos':'neg') + '">' + sign(cf) + f(cf) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:9px 14px;border-bottom:0.5px solid #f5f5f5;"><span style="font-size:13px;color:#666;">年度税务抵扣</span><span class="pos">+' + f(taxBen) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;padding:9px 14px;"><span style="font-size:13px;color:#666;">年度资产增值</span><span class="pos">+' + f(appr) + '</span></div>' +
+    '</div></div>' +
+
+    '<div class="sec-label">附近近期租出</div>' +
+    '<div class="card">' + nearby + '</div>' +
+
+    '<div class="sec-label">区域 Top Agent</div>' +
+    '<div class="card">' + agents + '</div>' +
+
+    '<div class="sec-label">区域 Top Property Management</div>' +
+    '<div class="card">' + pms + '</div>' +
+
+    '<div class="sec-label">房源详情</div>' +
+    '<div class="card">' +
+    '<button onclick="openRedfin()" id="rf-btn" style="width:100%;background:#fff;border:none;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">' +
+    '<div style="display:flex;align-items:center;gap:10px;">' +
+    '<div style="width:32px;height:32px;border-radius:8px;background:#fcebeb;display:flex;align-items:center;justify-content:center;">🏠</div>' +
+    '<div><div style="font-size:13px;font-weight:600;color:#000;">在 Redfin 查看完整信息</div><div style="font-size:11px;color:#888;">房屋历史、学区、建筑详情</div></div>' +
+    '</div>›</button>' +
+    '</div>' +
+
+    '<script>function openRedfin(){window.open("' + p.redfin.replace(/"/g,"'") + '","_blank");}<\/script>' +
+    '</body></html>';
+
+  return html;
+}
+
+function closeDetail(e){if(e.target===document.getElementById('overlay'))closeOverlay();}
+function closeOverlay(){document.getElementById('overlay').classList.remove('open');}
+
+let isInvest=true;
+function toggleSwitch(){
+  isInvest=!isInvest;
+  document.getElementById('thumb').classList.toggle('right',!isInvest);
+  document.getElementById('lbl-inv').className='sw-lbl '+(isInvest?'active':'inactive');
+  document.getElementById('lbl-sch').className='sw-lbl '+(isInvest?'inactive':'active');
+  document.getElementById('main').style.display=isInvest?'block':'none';
+  document.getElementById('school-main').style.display=isInvest?'none':'block';
+  if(!isInvest){
+    const bay=document.getElementById('ss-bay');
+    if(bay) bay.style.display='block';
+    renderRegionCards();
+  }
+}
+
+// school data
+const COUNTIES=[
+  {id:'santa-clara',  name:'Santa Clara',   cities:['Palo Alto','Cupertino','Los Altos','Saratoga','Sunnyvale','Mountain View','San Jose']},
+  {id:'san-mateo',    name:'San Mateo',     cities:['San Mateo','Burlingame','Millbrae','Belmont','San Carlos','Redwood City','Menlo Park','Foster City','Half Moon Bay','Pacifica','Daly City','Colma','Brisbane','Portola Valley','Woodside','Atherton']},
+  {id:'alameda',      name:'Alameda',       cities:['Fremont','Dublin','Oakland','Berkeley','Piedmont','San Leandro','Pleasanton','Livermore','Union City','Hayward','Newark']},
+  {id:'marin',        name:'Marin',         cities:['Mill Valley','San Rafael','Novato','Tiburon','Sausalito','Corte Madera','Fairfax']},
+  {id:'contra-costa', name:'Contra Costa',  cities:['Danville','Walnut Creek','Lafayette','Orinda','Moraga','San Ramon','Pleasant Hill']},
+  {id:'san-francisco',name:'San Francisco', cities:['San Francisco']},
+  {id:'solano',       name:'Solano',        cities:['Vallejo','Fairfield','Vacaville']},
+];
+
+const CITIES=[
+  {id:'palo-alto',    name:'Palo Alto',     county:'Santa Clara',  median_price:3200000, elem:9, middle:9, high:10, listings:[
+    {addr:'425 Melville Ave',     price:3100000,beds:4,sqft:2100,school:'Gunn High (10/10)'},
+    {addr:'180 Greenmeadow Way',  price:2850000,beds:3,sqft:1760,school:'Palo Alto High (10/10)'},
+    {addr:'3912 Park Blvd',       price:3450000,beds:4,sqft:2280,school:'Gunn High (10/10)'},
+  ]},
+  {id:'cupertino',    name:'Cupertino',     county:'Santa Clara',  median_price:2600000, elem:10,middle:10,high:9, listings:[
+    {addr:'10121 Bandley Dr',     price:2480000,beds:4,sqft:1920,school:'Monta Vista High (10/10)'},
+    {addr:'20520 Greenleaf Dr',   price:2750000,beds:4,sqft:2050,school:'Monta Vista High (10/10)'},
+    {addr:'1085 Varian Way',      price:2350000,beds:3,sqft:1680,school:'Cupertino High (9/10)'},
+  ]},
+  {id:'los-altos',    name:'Los Altos',     county:'Santa Clara',  median_price:2900000, elem:9, middle:9, high:9, listings:[
+    {addr:'1020 Edith Ave',       price:2780000,beds:4,sqft:1950,school:'Los Altos High (9/10)'},
+    {addr:'755 Orange Ave',       price:3100000,beds:4,sqft:2200,school:'Los Altos High (9/10)'},
+    {addr:'234 Hawthorne Ave',    price:2650000,beds:3,sqft:1720,school:'Los Altos High (9/10)'},
+  ]},
+  {id:'saratoga',     name:'Saratoga',      county:'Santa Clara',  median_price:3500000, elem:10,middle:10,high:10,listings:[
+    {addr:'14250 Saratoga Ave',   price:3400000,beds:4,sqft:2400,school:'Saratoga High (10/10)'},
+    {addr:'12680 Paseo Presada',  price:3650000,beds:5,sqft:2800,school:'Saratoga High (10/10)'},
+    {addr:'18920 Prospect Rd',    price:3200000,beds:4,sqft:2200,school:'Saratoga High (10/10)'},
+  ]},
+  {id:'sunnyvale',    name:'Sunnyvale',     county:'Santa Clara',  median_price:1850000, elem:8, middle:7, high:7, listings:[
+    {addr:'1042 Willow Ave',      price:1780000,beds:4,sqft:1680,school:'Homestead High (8/10)'},
+    {addr:'680 W Remington Dr',   price:1920000,beds:4,sqft:1820,school:'Fremont High (7/10)'},
+    {addr:'1285 Hollenbeck Ave',  price:1680000,beds:3,sqft:1520,school:'Homestead High (8/10)'},
+  ]},
+  {id:'mountain-view',name:'Mountain View', county:'Santa Clara',  median_price:1920000, elem:8, middle:8, high:8, listings:[
+    {addr:'412 Hope St',          price:1850000,beds:3,sqft:1480,school:'Los Altos High (8/10)'},
+    {addr:'1820 Miramonte Ave',   price:2050000,beds:4,sqft:1920,school:'Mountain View High (8/10)'},
+    {addr:'256 Tyrella Ave',      price:1750000,beds:3,sqft:1380,school:'Los Altos High (8/10)'},
+  ]},
+  {id:'san-jose',     name:'San Jose',      county:'Santa Clara',  median_price:1150000, elem:6, middle:6, high:7, listings:[
+    {addr:'2840 Moorpark Ave',    price:1080000,beds:4,sqft:1760,school:'Leland High (8/10)'},
+    {addr:'1425 Foxworthy Ave',   price:1220000,beds:4,sqft:1920,school:'Leigh High (8/10)'},
+    {addr:'3560 Miramar Ave',     price:980000, beds:3,sqft:1540,school:'Pioneer High (7/10)'},
+  ]},
+  {id:'burlingame',   name:'Burlingame',    county:'San Mateo',    median_price:2100000, elem:8, middle:8, high:9, listings:[
+    {addr:'1520 Ralston Ave',     price:2050000,beds:3,sqft:1620,school:'Burlingame High (9/10)'},
+    {addr:'728 Concord Way',      price:2250000,beds:4,sqft:1980,school:'Burlingame High (9/10)'},
+    {addr:'1180 Cabrillo Ave',    price:1920000,beds:3,sqft:1540,school:'Burlingame High (9/10)'},
+  ]},
+  {id:'san-mateo-c',  name:'San Mateo',     county:'San Mateo',    median_price:1680000, elem:7, middle:7, high:8, listings:[
+    {addr:'225 S Claremont St',   price:1580000,beds:3,sqft:1520,school:'Aragon High (8/10)'},
+    {addr:'810 N Delaware St',    price:1450000,beds:3,sqft:1420,school:'San Mateo High (7/10)'},
+    {addr:'1240 S El Camino',     price:1720000,beds:4,sqft:1750,school:'Hillsdale High (8/10)'},
+  ]},
+  {id:'menlo-park',   name:'Menlo Park',    county:'San Mateo',    median_price:2800000, elem:8, middle:8, high:8, listings:[
+    {addr:'1120 Encinal Ave',     price:2750000,beds:4,sqft:1980,school:'Menlo-Atherton High (8/10)'},
+    {addr:'225 Ravenswood Ave',   price:2600000,beds:3,sqft:1720,school:'Menlo-Atherton High (8/10)'},
+    {addr:'780 Middle Ave',       price:2950000,beds:4,sqft:2100,school:'Menlo-Atherton High (8/10)'},
+  ]},
+  {id:'fremont',      name:'Fremont',       county:'Alameda',      median_price:1380000, elem:8, middle:8, high:9, listings:[
+    {addr:'4521 Peralta Blvd',    price:1280000,beds:4,sqft:1840,school:'Mission San Jose High (10/10)'},
+    {addr:'38120 Paseo Padre',    price:1420000,beds:4,sqft:2000,school:'Mission San Jose High (10/10)'},
+    {addr:'4890 Thornton Ave',    price:1180000,beds:3,sqft:1620,school:'Irvington High (9/10)'},
+  ]},
+  {id:'dublin',       name:'Dublin',        county:'Alameda',      median_price:1450000, elem:8, middle:8, high:8, listings:[
+    {addr:'7420 Ironwood Dr',     price:1380000,beds:4,sqft:2100,school:'Dublin High (8/10)'},
+    {addr:'3260 Finnian Way',     price:1520000,beds:5,sqft:2400,school:'Dublin High (8/10)'},
+    {addr:'4580 Clarinbridge Cir',price:1280000,beds:3,sqft:1800,school:'Valley High (8/10)'},
+  ]},
+  {id:'mill-valley',  name:'Mill Valley',   county:'Marin',        median_price:2200000, elem:9, middle:9, high:8, listings:[
+    {addr:'120 Montford Ave',     price:2150000,beds:3,sqft:1680,school:'Tamalpais High (8/10)'},
+    {addr:'55 Sycamore Ave',      price:2350000,beds:4,sqft:1920,school:'Tamalpais High (8/10)'},
+    {addr:'280 Camino Alto',      price:2050000,beds:3,sqft:1540,school:'Tamalpais High (8/10)'},
+  ]},
+  {id:'danville',     name:'Danville',      county:'Contra Costa', median_price:1650000, elem:9, middle:9, high:9, listings:[
+    {addr:'412 El Pintado Rd',    price:1580000,beds:4,sqft:2200,school:'Monte Vista High (9/10)'},
+    {addr:'820 Camino Tassajara', price:1720000,beds:4,sqft:2400,school:'San Ramon Valley High (9/10)'},
+    {addr:'235 La Gonda Way',     price:1480000,beds:3,sqft:1900,school:'Monte Vista High (9/10)'},
+  ]},
+  {id:'millbrae',     name:'Millbrae',      county:'San Mateo',    median_price:1850000, elem:8, middle:8, high:8, listings:[
+    {addr:'541 Murchison Dr',     price:1780000,beds:3,sqft:1480,school:'Mills High (8/10)'},
+    {addr:'228 Larkspur Dr',      price:1920000,beds:4,sqft:1720,school:'Mills High (8/10)'},
+    {addr:'412 Hillcrest Blvd',   price:1750000,beds:3,sqft:1380,school:'Mills High (8/10)'},
+  ]},
+  {id:'belmont',      name:'Belmont',        county:'San Mateo',    median_price:1980000, elem:8, middle:8, high:9, listings:[
+    {addr:'1420 Belmont Ave',     price:1920000,beds:4,sqft:1820,school:'Carlmont High (9/10)'},
+    {addr:'820 Harbor Blvd',      price:1850000,beds:3,sqft:1580,school:'Carlmont High (9/10)'},
+    {addr:'2140 Hastings Dr',     price:2100000,beds:4,sqft:2000,school:'Carlmont High (9/10)'},
+  ]},
+  {id:'san-carlos',   name:'San Carlos',     county:'San Mateo',    median_price:2050000, elem:8, middle:9, high:8, listings:[
+    {addr:'720 Elm St',           price:1980000,beds:3,sqft:1620,school:'Carlmont High (8/10)'},
+    {addr:'1245 Laurel St',       price:2150000,beds:4,sqft:1900,school:'Carlmont High (8/10)'},
+    {addr:'340 Chestnut St',      price:1920000,beds:3,sqft:1520,school:'Carlmont High (8/10)'},
+  ]},
+  {id:'redwood-city', name:'Redwood City',   county:'San Mateo',    median_price:1680000, elem:7, middle:7, high:7, listings:[
+    {addr:'1820 Jefferson Ave',   price:1620000,beds:3,sqft:1480,school:'Sequoia High (7/10)'},
+    {addr:'420 Edgewood Rd',      price:1750000,beds:4,sqft:1720,school:'Woodside High (8/10)'},
+    {addr:'930 Brewster Ave',     price:1580000,beds:3,sqft:1380,school:'Sequoia High (7/10)'},
+  ]},
+  {id:'foster-city',  name:'Foster City',    county:'San Mateo',    median_price:1820000, elem:8, middle:8, high:8, listings:[
+    {addr:'780 Beach Park Blvd',  price:1750000,beds:3,sqft:1520,school:'San Mateo High (8/10)'},
+    {addr:'1140 Edgewater Blvd',  price:1880000,beds:4,sqft:1780,school:'San Mateo High (8/10)'},
+    {addr:'520 Gull Ave',         price:1720000,beds:3,sqft:1420,school:'San Mateo High (8/10)'},
+  ]},
+  {id:'atherton',     name:'Atherton',       county:'San Mateo',    median_price:7500000, elem:9, middle:9, high:9, listings:[
+    {addr:'70 Valparaiso Ave',    price:7200000,beds:5,sqft:4200,school:'Menlo-Atherton High (9/10)'},
+    {addr:'145 Stockbridge Ave',  price:8100000,beds:5,sqft:4800,school:'Menlo-Atherton High (9/10)'},
+    {addr:'28 Elena Ave',         price:6800000,beds:4,sqft:3800,school:'Menlo-Atherton High (9/10)'},
+  ]},
+  {id:'woodside',     name:'Woodside',       county:'San Mateo',    median_price:4200000, elem:9, middle:9, high:9, listings:[
+    {addr:'145 Farm Rd',          price:4100000,beds:4,sqft:3200,school:'Woodside High (9/10)'},
+    {addr:'320 Kings Mountain Rd',price:4500000,beds:5,sqft:3600,school:'Woodside High (9/10)'},
+    {addr:'88 Mountain Home Rd',  price:3900000,beds:4,sqft:2900,school:'Woodside High (9/10)'},
+  ]},
+  {id:'portola-valley',name:'Portola Valley', county:'San Mateo',   median_price:3800000, elem:9, middle:9, high:9, listings:[
+    {addr:'4180 Alpine Rd',       price:3700000,beds:4,sqft:2800,school:'Woodside High (9/10)'},
+    {addr:'150 Westridge Dr',     price:4000000,beds:4,sqft:3100,school:'Woodside High (9/10)'},
+    {addr:'220 Corte Madera Rd',  price:3600000,beds:3,sqft:2500,school:'Woodside High (9/10)'},
+  ]},
+  {id:'daly-city',    name:'Daly City',      county:'San Mateo',    median_price:1050000, elem:6, middle:6, high:6, listings:[
+    {addr:'280 Eastmoor Ave',     price:1020000,beds:3,sqft:1280,school:'Jefferson High (6/10)'},
+    {addr:'115 San Pedro Rd',     price:980000, beds:3,sqft:1200,school:'Jefferson High (6/10)'},
+    {addr:'440 Brunswick St',     price:1080000,beds:3,sqft:1350,school:'Westmoor High (6/10)'},
+  ]},
+  {id:'pacifica',     name:'Pacifica',       county:'San Mateo',    median_price:1080000, elem:6, middle:7, high:7, listings:[
+    {addr:'540 Crespi Dr',        price:1050000,beds:3,sqft:1320,school:'Terra Nova High (7/10)'},
+    {addr:'218 Monterey Rd',      price:1120000,beds:3,sqft:1400,school:'Oceana High (7/10)'},
+    {addr:'780 Bradford Way',     price:1020000,beds:3,sqft:1280,school:'Terra Nova High (7/10)'},
+  ]},
+  // Alameda County
+  {id:'oakland',      name:'Oakland',       county:'Alameda',      median_price:820000,  elem:5, middle:5, high:5, listings:[
+    {addr:'4521 Shafter Ave',     price:799000, beds:3,sqft:1480,school:'Oakland Tech (7/10)'},
+    {addr:'2830 Hillegass Ave',   price:850000, beds:3,sqft:1320,school:'Skyline High (6/10)'},
+    {addr:'6120 Chabot Rd',       price:920000, beds:4,sqft:1680,school:'Montera Middle (6/10)'},
+  ]},
+  {id:'berkeley',     name:'Berkeley',      county:'Alameda',      median_price:1350000, elem:7, middle:7, high:8, listings:[
+    {addr:'2421 Hillegass Ave',   price:1320000,beds:3,sqft:1580,school:'Berkeley High (8/10)'},
+    {addr:'1580 Milvia St',       price:1420000,beds:4,sqft:1780,school:'Berkeley High (8/10)'},
+    {addr:'820 Euclid Ave',       price:1250000,beds:3,sqft:1420,school:'King Middle (7/10)'},
+  ]},
+  {id:'piedmont',     name:'Piedmont',      county:'Alameda',      median_price:2200000, elem:9, middle:9, high:9, listings:[
+    {addr:'120 Magnolia Ave',     price:2150000,beds:4,sqft:2200,school:'Piedmont High (9/10)'},
+    {addr:'480 Highland Ave',     price:2350000,beds:4,sqft:2400,school:'Piedmont High (9/10)'},
+    {addr:'75 Moraga Ave',        price:2050000,beds:3,sqft:1920,school:'Piedmont High (9/10)'},
+  ]},
+  {id:'san-leandro',  name:'San Leandro',   county:'Alameda',      median_price:780000,  elem:6, middle:6, high:6, listings:[
+    {addr:'1420 Bancroft Ave',    price:760000, beds:3,sqft:1380,school:'San Leandro High (6/10)'},
+    {addr:'2580 Williams St',     price:820000, beds:4,sqft:1620,school:'San Leandro High (6/10)'},
+    {addr:'980 Estudillo Ave',    price:740000, beds:3,sqft:1280,school:'Bancroft Middle (6/10)'},
+  ]},
+  {id:'pleasanton',   name:'Pleasanton',    county:'Alameda',      median_price:1580000, elem:9, middle:9, high:9, listings:[
+    {addr:'4820 Bernal Ave',      price:1520000,beds:4,sqft:2100,school:'Amador Valley High (9/10)'},
+    {addr:'3240 Vineyard Ave',    price:1650000,beds:4,sqft:2300,school:'Foothill High (9/10)'},
+    {addr:'1180 Hopyard Rd',      price:1450000,beds:3,sqft:1850,school:'Amador Valley High (9/10)'},
+  ]},
+  {id:'livermore',    name:'Livermore',     county:'Alameda',      median_price:1080000, elem:7, middle:7, high:8, listings:[
+    {addr:'824 Maple St',         price:1050000,beds:4,sqft:1980,school:'Livermore High (8/10)'},
+    {addr:'2140 Arroyo Rd',       price:1120000,beds:4,sqft:2100,school:'Granada High (8/10)'},
+    {addr:'680 East Ave',         price:980000, beds:3,sqft:1720,school:'Del Valle High (7/10)'},
+  ]},
+  {id:'union-city',   name:'Union City',    county:'Alameda',      median_price:920000,  elem:7, middle:7, high:7, listings:[
+    {addr:'33820 7th St',         price:890000, beds:4,sqft:1820,school:'James Logan High (7/10)'},
+    {addr:'31240 Alvarado Blvd',  price:950000, beds:4,sqft:1960,school:'James Logan High (7/10)'},
+    {addr:'32580 Pulaski Dr',     price:880000, beds:3,sqft:1650,school:'Itliong Middle (7/10)'},
+  ]},
+  {id:'hayward',      name:'Hayward',       county:'Alameda',      median_price:780000,  elem:5, middle:5, high:6, listings:[
+    {addr:'25420 Fairview Ave',   price:760000, beds:3,sqft:1420,school:'Tennyson High (6/10)'},
+    {addr:'28340 Ruus Rd',        price:820000, beds:4,sqft:1680,school:'Hayward High (5/10)'},
+    {addr:'22180 Main St',        price:740000, beds:3,sqft:1320,school:'Mt. Eden High (6/10)'},
+  ]},
+
+  // Marin County
+  {id:'san-rafael',   name:'San Rafael',    county:'Marin',        median_price:1180000, elem:7, middle:7, high:7, listings:[
+    {addr:'120 Mission Ave',      price:1150000,beds:3,sqft:1580,school:'San Rafael High (7/10)'},
+    {addr:'480 B St',             price:1250000,beds:4,sqft:1820,school:'Terra Linda High (7/10)'},
+    {addr:'820 4th St',           price:1100000,beds:3,sqft:1420,school:'San Rafael High (7/10)'},
+  ]},
+  {id:'novato',       name:'Novato',        county:'Marin',        median_price:980000,  elem:7, middle:7, high:7, listings:[
+    {addr:'420 Arthur St',        price:950000, beds:3,sqft:1520,school:'Novato High (7/10)'},
+    {addr:'1240 Sunset Pkwy',     price:1020000,beds:4,sqft:1780,school:'San Marin High (8/10)'},
+    {addr:'680 Diablo Ave',       price:920000, beds:3,sqft:1420,school:'Novato High (7/10)'},
+  ]},
+  {id:'tiburon',      name:'Tiburon',       county:'Marin',        median_price:3200000, elem:9, middle:9, high:9, listings:[
+    {addr:'80 Trestle Glen Rd',   price:3100000,beds:4,sqft:2600,school:'Del Mar Middle (9/10)'},
+    {addr:'45 Lyford Dr',         price:3450000,beds:4,sqft:2900,school:'Reed Elementary (9/10)'},
+    {addr:'120 Beach Rd',         price:2950000,beds:3,sqft:2200,school:'Del Mar Middle (9/10)'},
+  ]},
+  {id:'sausalito',    name:'Sausalito',     county:'Marin',        median_price:1650000, elem:8, middle:8, high:8, listings:[
+    {addr:'120 Bulkley Ave',      price:1620000,beds:3,sqft:1480,school:'Bayside MLK Academy (8/10)'},
+    {addr:'80 Caledonia St',      price:1720000,beds:3,sqft:1580,school:'Bayside MLK Academy (8/10)'},
+    {addr:'45 Princess St',       price:1580000,beds:2,sqft:1280,school:'Bayside MLK Academy (8/10)'},
+  ]},
+  {id:'corte-madera', name:'Corte Madera',  county:'Marin',        median_price:1950000, elem:9, middle:8, high:8, listings:[
+    {addr:'120 Redwood Ave',      price:1900000,beds:4,sqft:1980,school:'Tamalpais High (8/10)'},
+    {addr:'480 Magnolia Ave',     price:2050000,beds:4,sqft:2100,school:'Tamalpais High (8/10)'},
+    {addr:'280 Coachman Ln',      price:1850000,beds:3,sqft:1720,school:'Hall Middle (8/10)'},
+  ]},
+  {id:'fairfax',      name:'Fairfax',       county:'Marin',        median_price:1250000, elem:8, middle:8, high:8, listings:[
+    {addr:'80 Bolinas Rd',        price:1220000,beds:3,sqft:1480,school:'Sir Francis Drake High (8/10)'},
+    {addr:'45 Cascade Dr',        price:1320000,beds:3,sqft:1580,school:'Sir Francis Drake High (8/10)'},
+    {addr:'120 Broadway Blvd',    price:1180000,beds:3,sqft:1380,school:'White Hill Middle (8/10)'},
+  ]},
+
+  // Contra Costa County
+  {id:'walnut-creek', name:'Walnut Creek',  county:'Contra Costa', median_price:1180000, elem:8, middle:8, high:8, listings:[
+    {addr:'1420 Geary Rd',        price:1150000,beds:3,sqft:1680,school:'Las Lomas High (8/10)'},
+    {addr:'2480 Ygnacio Valley',  price:1250000,beds:4,sqft:1920,school:'Northgate High (8/10)'},
+    {addr:'820 Oak Grove Rd',     price:1100000,beds:3,sqft:1520,school:'Las Lomas High (8/10)'},
+  ]},
+  {id:'lafayette',    name:'Lafayette',     county:'Contra Costa', median_price:1850000, elem:9, middle:9, high:9, listings:[
+    {addr:'3480 Mt Diablo Blvd',  price:1800000,beds:4,sqft:2200,school:'Acalanes High (9/10)'},
+    {addr:'1240 Moraga Rd',       price:1950000,beds:4,sqft:2400,school:'Acalanes High (9/10)'},
+    {addr:'820 Deer Hill Rd',     price:1720000,beds:3,sqft:1980,school:'Stanley Middle (9/10)'},
+  ]},
+  {id:'orinda',       name:'Orinda',        county:'Contra Costa', median_price:2100000, elem:9, middle:9, high:10, listings:[
+    {addr:'24 Orinda Way',        price:2050000,beds:4,sqft:2300,school:'Miramonte High (10/10)'},
+    {addr:'80 Moraga Way',        price:2250000,beds:4,sqft:2500,school:'Miramonte High (10/10)'},
+    {addr:'45 Santa Maria Way',   price:1950000,beds:3,sqft:2000,school:'Orinda Intermediate (9/10)'},
+  ]},
+  {id:'moraga',       name:'Moraga',        county:'Contra Costa', median_price:1650000, elem:9, middle:9, high:9, listings:[
+    {addr:'1480 School St',       price:1620000,beds:4,sqft:2100,school:'Campolindo High (9/10)'},
+    {addr:'280 Rheem Blvd',       price:1720000,beds:4,sqft:2300,school:'Campolindo High (9/10)'},
+    {addr:'820 Country Club Dr',  price:1580000,beds:3,sqft:1900,school:'JM Middle (9/10)'},
+  ]},
+  {id:'san-ramon',    name:'San Ramon',     county:'Contra Costa', median_price:1480000, elem:9, middle:9, high:9, listings:[
+    {addr:'2480 Faria Preserve',  price:1450000,beds:4,sqft:2200,school:'California High (9/10)'},
+    {addr:'1240 Sunset Dr',       price:1550000,beds:4,sqft:2400,school:'Dougherty Valley High (9/10)'},
+    {addr:'820 Pine Valley Rd',   price:1380000,beds:3,sqft:1950,school:'Iron Horse Middle (9/10)'},
+  ]},
+  {id:'pleasant-hill',name:'Pleasant Hill', county:'Contra Costa', median_price:980000,  elem:7, middle:7, high:7, listings:[
+    {addr:'1480 Contra Costa Blvd',price:950000,beds:3,sqft:1580,school:'College Park High (7/10)'},
+    {addr:'820 Gregory Ln',       price:1020000,beds:4,sqft:1780,school:'College Park High (7/10)'},
+    {addr:'2480 Oak Park Blvd',   price:920000, beds:3,sqft:1480,school:'Pleasant Hill Middle (7/10)'},
+  ]},
+
+  {id:'san-francisco',name:'San Francisco', county:'San Francisco', median_price:1400000, elem:6, middle:6, high:6, listings:[
+    {addr:'1580 Dolores St',      price:1350000,beds:3,sqft:1480,school:'Lowell High (9/10)'},
+    {addr:'420 Noe St',           price:1480000,beds:3,sqft:1320,school:'Lincoln High (7/10)'},
+    {addr:'28 Beaver St',         price:1280000,beds:2,sqft:1100,school:'Mission High (6/10)'},
+  ]},
+];
+
+let selCounties=new Set(), selCities=new Set(), selElem=new Set(), selMiddle=new Set(), selHigh=new Set();
+
+function renderRegionCards(){
+  const wrap = document.getElementById('region-cards-wrap');
+  if(!wrap) return;
+  const regions = [
+    {id:'bay',label:'旧金山湾区',sub:'Palo Alto · Cupertino',avail:true,icon:'🌁'},
+    {id:'la',label:'洛杉矶地区',sub:'Arcadia · Irvine',avail:false,icon:'🌴'},
+    {id:'sea',label:'西雅图地区',sub:'Bellevue · Redmond',avail:false,icon:'🌧️'},
+    {id:'chi',label:'芝加哥地区',sub:'Naperville · Evanston',avail:false,icon:'🏙️'},
+    {id:'ny',label:'纽约地区',sub:'Great Neck · Scarsdale',avail:false,icon:'🗽'},
+  ];
+  wrap.innerHTML = '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;">' +
+    regions.map(function(r){
+      return '<div onclick="' + (r.avail ? 'selectRegion(\''+r.id+'\')"' : '"') +
+        ' style="min-width:110px;max-width:110px;flex-shrink:0;padding:11px 8px;border-radius:14px;' +
+        'border:' + (r.avail?'1.5px solid #1a56db':'0.5px solid #e0e0e8') + ';' +
+        'background:' + (r.avail?'#fff':'#f7f7f7') + ';' +
+        'cursor:' + (r.avail?'pointer':'default') + ';' +
+        'text-align:center;opacity:' + (r.avail?'1':'0.38') + ';">' +
+        '<div style="font-size:24px;margin-bottom:5px;">' + r.icon + '</div>' +
+        '<div style="font-size:11px;font-weight:600;color:' + (r.avail?'#000':'#999') + ';line-height:1.3;">' + r.label + '</div>' +
+        '<div style="font-size:10px;color:#aaa;margin-top:2px;line-height:1.3;">' + r.sub + '</div>' +
+        '</div>';
+    }).join('') + '</div>';
+}
+
+function renderSchoolMain(){
+  const sm=document.getElementById('school-main');
+  sm.innerHTML=`
+    <div style="padding:14px 16px 10px;" id="region-cards-wrap"></div>
+    <div id="ss-bay" style="display:none;padding-bottom:20px;">
+      <div style="margin:0 16px 14px;background:#f7f7fa;border-radius:16px;overflow:hidden;">
+        <div onclick="toggleFilterPanel()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 4h11M4 7.5h7M6 11h3" stroke="#555" stroke-width="1.3" stroke-linecap="round"/></svg>
+            <span style="font-size:13px;font-weight:600;color:#333;">筛选</span>
+            <span style="font-size:12px;color:#1a56db;font-weight:500;" id="filter-summary-tag"></span>
+          </div>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" id="filter-panel-arrow" style="transition:transform 0.2s;transform:rotate(180deg);"><path d="M2 4l4 4 4-4" stroke="#aaa" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </div>
+        <div id="filter-panel-body" style="padding:0 14px 12px;">
+        <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:8px;letter-spacing:0.04em;">COUNTY</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="county-chips">
+          ${COUNTIES.map(c=>`<div onclick="toggleCounty('${c.id}')" id="chip-county-${c.id}" style="padding:5px 12px;border-radius:99px;border:0.5px solid #d0d0d8;background:#fff;font-size:11px;font-weight:500;color:#555;cursor:pointer;">${c.name}</div>`).join('')}
+        </div>
+        <div id="city-chips-wrap" style="display:none;margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:8px;letter-spacing:0.04em;">城市</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;" id="city-chips"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:8px;letter-spacing:0.04em;">学校类型 · 最低评分</div>
+        <div style="display:flex;gap:6px;position:relative;">
+          ${[{key:'elem',label:'小学'},{key:'middle',label:'初中'},{key:'high',label:'高中'}].map(t=>`
+            <div style="flex:1;position:relative;">
+              <div onclick="toggleScoreDD('${t.key}')" id="dd-btn-${t.key}" style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#fff;border:0.5px solid #d0d0d8;border-radius:10px;cursor:pointer;">
+                <span style="font-size:12px;font-weight:500;color:#333;" id="dd-label-${t.key}">${t.label}</span>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" id="dd-arrow-${t.key}" style="transition:transform 0.15s;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="#aaa" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </div>
+              <div id="dd-panel-${t.key}" style="display:none;position:fixed;background:#fff;border:0.5px solid #e0e0e8;border-radius:10px;z-index:200;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.15);width:120px;">
+                ${[7,8,9,10].map(s=>`
+                  <div onclick="toggleScore('${t.key}',${s},event)" id="chip-${t.key}-${s}" style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:0.5px solid #f5f5f5;cursor:pointer;">
+                    <span style="font-size:13px;font-weight:500;color:#333;">${s} 分以上</span>
+                    <div id="chk-${t.key}-${s}" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #d0d0d8;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"></div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+          <div onclick="clearFilters()" style="font-size:12px;color:#aaa;cursor:pointer;">清除筛选</div>
+          <div id="filter-result-count" style="font-size:12px;color:#1a56db;font-weight:600;"></div>
+        </div>
+      </div>
+        </div>
+      </div>
+      <div id="city-list" style="padding:0 16px;display:flex;flex-direction:column;gap:14px;"></div>
+    </div>
+  `;
+  applyFilters();
+}
+
+let filterPanelOpen = true;
+function toggleFilterPanel(){
+  filterPanelOpen = !filterPanelOpen;
+  const body = document.getElementById('filter-panel-body');
+  const arrow = document.getElementById('filter-panel-arrow');
+  if(body) body.style.display = filterPanelOpen ? 'block' : 'none';
+  if(arrow) arrow.style.transform = filterPanelOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function updateFilterSummary(){
+  const tag = document.getElementById('filter-summary-tag');
+  if(!tag) return;
+  const parts = [];
+  if(selCounties.size) parts.push(selCounties.size+' county');
+  if(selCities.size) parts.push(selCities.size+' 城市');
+  const scores = [];
+  if(selElem.size) scores.push('小学≥'+Math.min(...selElem));
+  if(selMiddle.size) scores.push('初中≥'+Math.min(...selMiddle));
+  if(selHigh.size) scores.push('高中≥'+Math.min(...selHigh));
+  if(scores.length) parts.push(scores.join(' '));
+  tag.textContent = parts.length ? '· '+parts.join(' · ') : '';
+}
+
+function selectRegion(id){
+  if(id==='bay'){const b=document.getElementById('ss-bay');if(b)b.style.display=b.style.display==='none'?'block':'none';}
+}
+
+function toggleCounty(id){
+  const chip=document.getElementById('chip-county-'+id);
+  if(selCounties.has(id)){selCounties.delete(id);chip.style.background='#fff';chip.style.color='#555';chip.style.borderColor='#d0d0d8';}
+  else{selCounties.add(id);chip.style.background='#1a56db';chip.style.color='#fff';chip.style.borderColor='#1a56db';}
+  renderCityChips();applyFilters();
+}
+
+function renderCityChips(){
+  const wrap=document.getElementById('city-chips-wrap');
+  const container=document.getElementById('city-chips');
+  if(!selCounties.size){wrap.style.display='none';selCities.clear();applyFilters();return;}
+  wrap.style.display='block';
+  const names=Array.from(selCounties).map(id=>COUNTIES.find(c=>c.id===id)?.name);
+  const cities=CITIES.filter(c=>names.includes(c.county));
+  container.innerHTML=cities.map(c=>`<div onclick="toggleCityChip('${c.id}')" id="chip-city-${c.id}" style="padding:5px 12px;border-radius:99px;border:0.5px solid #d0d0d8;background:${selCities.has(c.id)?'#1a56db':'#fff'};color:${selCities.has(c.id)?'#fff':'#555'};font-size:11px;font-weight:500;cursor:pointer;">${c.name}</div>`).join('');
+}
+
+function toggleCityChip(id){
+  const chip=document.getElementById('chip-city-'+id);
+  if(selCities.has(id)){selCities.delete(id);chip.style.background='#fff';chip.style.color='#555';}
+  else{selCities.add(id);chip.style.background='#1a56db';chip.style.color='#fff';}
+  applyFilters();
+}
+
+let openDD=null;
+function toggleScoreDD(key){
+  if(openDD && openDD!==key){
+    document.getElementById('dd-panel-'+openDD).style.display='none';
+    document.getElementById('dd-arrow-'+openDD).style.transform='';
+    openDD=null;
+  }
+  const panel=document.getElementById('dd-panel-'+key);
+  const arrow=document.getElementById('dd-arrow-'+key);
+  const btn=document.getElementById('dd-btn-'+key);
+  if(panel.style.display==='none'){
+    // Position the panel relative to button
+    const rect=btn.getBoundingClientRect();
+    panel.style.top=(rect.bottom+4)+'px';
+    panel.style.left=rect.left+'px';
+    panel.style.width=rect.width+'px';
+    panel.style.display='block';
+    arrow.style.transform='rotate(180deg)';
+    openDD=key;
+  } else {
+    panel.style.display='none';
+    arrow.style.transform='';
+    openDD=null;
+  }
+}
+// Close dropdown when tapping outside
+document.addEventListener('click', function(e){
+  if(openDD && !e.target.closest('#dd-btn-'+openDD) && !e.target.closest('#dd-panel-'+openDD)){
+    document.getElementById('dd-panel-'+openDD).style.display='none';
+    document.getElementById('dd-arrow-'+openDD).style.transform='';
+    openDD=null;
+  }
+});
+function toggleScore(type,score,e){
+  if(e) e.stopPropagation();
+  const map={elem:selElem,middle:selMiddle,high:selHigh};
+  const set=map[type];
+  const chk=document.getElementById('chk-'+type+'-'+score);
+  const row=document.getElementById('chip-'+type+'-'+score);
+  if(set.has(score)){
+    set.delete(score);
+    chk.style.background='#fff';chk.style.borderColor='#d0d0d8';chk.innerHTML='';
+    row.style.background='#fff';
+  } else {
+    set.add(score);
+    chk.style.background='#1a56db';chk.style.borderColor='#1a56db';
+    chk.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 2.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    row.style.background='#f0f5ff';
+  }
+  // update button label
+  const lbl=document.getElementById('dd-label-'+type);
+  const selSet=map[type];
+  if(selSet.size){
+    const min=Math.min(...selSet);
+    lbl.textContent={elem:'小学',middle:'初中',high:'高中'}[type]+' ≥'+min;
+    lbl.style.color='#1a56db';
+  } else {
+    lbl.textContent={elem:'小学',middle:'初中',high:'高中'}[type];
+    lbl.style.color='#333';
+  }
+  applyFilters();
+}
+
+function clearFilters(){
+  selCounties.clear();selCities.clear();selElem.clear();selMiddle.clear();selHigh.clear();
+  document.querySelectorAll('[id^="chip-county-"],[id^="chip-city-"]').forEach(el=>{el.style.background='#fff';el.style.color='#555';el.style.borderColor='#d0d0d8';});
+  ['elem','middle','high'].forEach(t=>{
+    [7,8,9,10].forEach(s=>{
+      const chk=document.getElementById('chk-'+t+'-'+s);
+      const row=document.getElementById('chip-'+t+'-'+s);
+      if(chk){chk.style.background='#fff';chk.style.borderColor='#d0d0d8';chk.innerHTML='';}
+      if(row) row.style.background='#fff';
+    });
+    const lbl=document.getElementById('dd-label-'+t);
+    if(lbl){lbl.textContent={elem:'小学',middle:'初中',high:'高中'}[t];lbl.style.color='#333';}
+  });
+  const w=document.getElementById('city-chips-wrap');if(w)w.style.display='none';
+  applyFilters();
+}
+
+function applyFilters(){
+  let visible=CITIES.slice();
+  if(selCounties.size){const names=Array.from(selCounties).map(id=>COUNTIES.find(c=>c.id===id)?.name);visible=visible.filter(c=>names.includes(c.county));}
+  if(selCities.size){visible=visible.filter(c=>selCities.has(c.id));}
+  if(selElem.size){const m=Math.min(...selElem);visible=visible.filter(c=>c.elem>=m);}
+  if(selMiddle.size){const m=Math.min(...selMiddle);visible=visible.filter(c=>c.middle>=m);}
+  if(selHigh.size){const m=Math.min(...selHigh);visible=visible.filter(c=>c.high>=m);}
+  const cnt=document.getElementById('filter-result-count');
+  if(cnt)cnt.textContent=visible.length+' 个城市';
+  updateFilterSummary();
+  renderCityCards(visible);
+}
+
+function toggleCityCard(id){
+  const card=document.getElementById('city-card-'+id);
+  if(card){card.style.transition='opacity 0.2s';card.style.opacity='0';setTimeout(()=>card.remove(),200);}
+}
+
+function renderCityCards(visible){
+  const container=document.getElementById('city-list');
+  if(!container)return;
+  if(!visible.length){container.innerHTML='<div style="text-align:center;padding:32px 0;color:#aaa;font-size:13px;">暂无符合条件的城市</div>';return;}
+  container.innerHTML=visible.map(c=>`
+    <div id="city-card-${c.id}" style="background:#fff;border:0.5px solid #e0e0e8;border-radius:16px;overflow:hidden;">
+      <div style="padding:12px 12px 10px;display:flex;align-items:flex-start;justify-content:space-between;">
+        <div>
+          <div style="font-size:17px;font-weight:700;color:#000;">${c.name}</div>
+          <div style="font-size:11px;color:#888;margin-top:1px;">${c.county} County</div>
+          <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+            <div style="padding:3px 9px;border-radius:99px;background:#e1f5ee;font-size:10px;font-weight:600;color:#085041;">小学 ${c.elem}/10</div>
+            <div style="padding:3px 9px;border-radius:99px;background:#eeedfe;font-size:10px;font-weight:600;color:#3c3489;">初中 ${c.middle}/10</div>
+            <div style="padding:3px 9px;border-radius:99px;background:#e6f1fb;font-size:10px;font-weight:600;color:#0c447c;">高中 ${c.high}/10</div>
+            <div style="padding:3px 9px;border-radius:99px;background:#f0f0f5;font-size:10px;font-weight:600;color:#555;">均价 $${(c.median_price/1000000).toFixed(1)}M</div>
+          </div>
+        </div>
+        <div onclick="toggleCityCard('${c.id}')" style="width:28px;height:28px;border-radius:50%;background:#e6f1fb;border:1.5px solid #1a56db;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:2px;" title="取消关注">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 2.5" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding:0 12px 12px;scrollbar-width:none;">
+        ${c.listings.map(p=>`
+          <div style="min-width:155px;max-width:155px;background:#fff;border:0.5px solid #e8e8f0;border-radius:12px;overflow:hidden;flex-shrink:0;cursor:pointer;">
+            <div style="height:84px;background:#f5f5f8;display:flex;align-items:center;justify-content:center;">
+              <svg width="26" height="26" viewBox="0 0 28 28" fill="none" style="opacity:0.2"><path d="M2 13L14 3l12 10v13a1 1 0 01-1 1H3a1 1 0 01-1-1V13z" stroke="#333" stroke-width="1.3"/><path d="M10 27V19h8v8" stroke="#333" stroke-width="1.3"/></svg>
+            </div>
+            <div style="padding:8px 9px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:3px;margin-bottom:2px;">
+                <span style="font-size:10px;color:#666;flex:1;line-height:1.3;">${p.addr}</span>
+                <span style="font-size:8px;font-weight:700;color:#a32d2d;background:#fcebeb;padding:2px 4px;border-radius:99px;white-space:nowrap;">For Sale</span>
+              </div>
+              <div style="font-size:14px;font-weight:700;color:#000;margin-bottom:2px;">$${(p.price/1000000).toFixed(2)}M</div>
+              <div style="font-size:10px;color:#aaa;margin-bottom:5px;">${p.beds}bd · ${p.sqft.toLocaleString()} sqft</div>
+              <div style="font-size:9px;padding:2px 7px;border-radius:99px;font-weight:600;background:#e6f1fb;color:#0c447c;display:inline-block;">${p.school}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+renderMain();
+renderSavedRow();
+renderSchoolMain();
+renderRegionCards();
+document.getElementById('school-main').style.display='none';
+</script>
+
+<!-- Add Zip Overlay -->
+<div id="addzip-overlay" onclick="closeAddZip(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;justify-content:center;align-items:flex-end;">
+  <div style="background:#fff;width:100%;max-width:600px;border-radius:24px 24px 0 0;padding:20px 20px 36px;">
+    <div style="width:36px;height:4px;background:#e0e0e0;border-radius:99px;margin:0 auto 16px;cursor:pointer;" onclick="document.getElementById('addzip-overlay').style.display='none'"></div>
+    <div style="font-size:16px;font-weight:700;color:#000;margin-bottom:4px;">添加 zip code</div>
+    <div style="font-size:13px;color:#888;margin-bottom:16px;">输入你想关注的区域</div>
+    <input id="addzip-input" type="text" inputmode="numeric" placeholder="例如：78701" style="width:100%;padding:12px 14px;border:0.5px solid #d0d0d8;border-radius:12px;font-size:15px;margin-bottom:16px;outline:none;">
+    <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:10px;letter-spacing:0.04em;">推荐 zip code</div>
+    <div id="suggested-zips-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
+    <button onclick="submitAddZip()" style="width:100%;padding:13px;background:#1a56db;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">确认添加</button>
+  </div>
+</div>
+
+<!-- Add Property Overlay -->
+<div id="addprop-overlay" onclick="closeAddProp(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;justify-content:center;align-items:flex-end;">
+  <div style="background:#fff;width:100%;max-width:600px;border-radius:24px 24px 0 0;padding:20px 20px 36px;">
+    <div style="width:36px;height:4px;background:#e0e0e0;border-radius:99px;margin:0 auto 16px;cursor:pointer;" onclick="document.getElementById('addprop-overlay').style.display='none'"></div>
+    <div style="font-size:16px;font-weight:700;color:#000;margin-bottom:4px;">添加房源</div>
+    <div style="font-size:13px;color:#888;margin-bottom:16px;">输入地址或 Redfin 链接</div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:12px;color:#555;margin-bottom:6px;">房源地址</div>
+      <input id="addprop-addr" type="text" placeholder="例如：310 Congress Ave, Austin TX" style="width:100%;padding:12px 14px;border:0.5px solid #d0d0d8;border-radius:12px;font-size:14px;outline:none;">
+    </div>
+    <div style="margin-bottom:20px;">
+      <div style="font-size:12px;color:#555;margin-bottom:6px;">或 Redfin 链接</div>
+      <input id="addprop-link" type="url" placeholder="https://www.redfin.com/..." style="width:100%;padding:12px 14px;border:0.5px solid #d0d0d8;border-radius:12px;font-size:14px;outline:none;">
+    </div>
+    <button onclick="submitAddProp()" style="width:100%;padding:13px;background:#1a56db;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">添加到关注</button>
+  </div>
+</div>
+
+<!-- Manage Zips Overlay -->
+<div id="managezips-overlay" onclick="closeManageZips(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;justify-content:center;align-items:flex-end;">
+  <div style="background:#fff;width:100%;max-width:600px;border-radius:24px 24px 0 0;padding:20px 20px 36px;max-height:70vh;overflow-y:auto;">
+    <div style="width:36px;height:4px;background:#e0e0e0;border-radius:99px;margin:0 auto 16px;cursor:pointer;" onclick="document.getElementById('managezips-overlay').style.display='none'"></div>
+    <div style="font-size:16px;font-weight:700;color:#000;margin-bottom:16px;">正在关注的 zip code</div>
+    <div id="managezips-list"></div>
+    <button onclick="closeManageZips()" style="width:100%;padding:13px;background:#f0f0f5;color:#333;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;margin-top:16px;">完成</button>
+  </div>
+</div>
+
+
+<!-- Calculator Overlay -->
+<div id="calc-overlay" onclick="closeCalc(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;justify-content:center;align-items:flex-end;">
+  <div id="calc-sheet" style="background:#fff;width:100%;max-width:600px;border-radius:24px 24px 0 0;max-height:92vh;overflow-y:auto;padding-bottom:40px;-webkit-overflow-scrolling:touch;">
+    <div style="width:36px;height:4px;background:#e0e0e0;border-radius:99px;margin:12px auto 14px;cursor:pointer;" onclick="closeCalc()"></div>
+
+    <!-- sub tabs -->
+    <div style="display:flex;margin:0 16px 16px;background:#f0f0f5;border-radius:12px;padding:3px;gap:3px;">
+      <div id="ctab-mortgage" onclick="switchCalcTab('mortgage')" style="flex:1;text-align:center;padding:8px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:#1a56db;">房贷计算</div>
+      <div id="ctab-invest" onclick="switchCalcTab('invest')" style="flex:1;text-align:center;padding:8px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#888;">投资分析</div>
+    </div>
+
+    <!-- MORTGAGE CALCULATOR -->
+    <div id="calc-mortgage">
+      <div style="padding:0 16px;">
+
+        <!-- Loan type selector -->
+        <div style="font-size:11px;font-weight:600;color:#555;letter-spacing:0.04em;margin-bottom:8px;">贷款类型</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+
+          <!-- Fixed row -->
+          <div id="lt-fixed" onclick="selectLoanMode('fixed')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:0.5px solid #e0e0e8;cursor:pointer;background:#fff;">
+            <div id="lt-dot-fixed" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #d0d0d8;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
+            <span style="font-size:13px;font-weight:500;color:#000;flex-shrink:0;">Fixed</span>
+            <div style="display:flex;align-items:center;gap:5px;margin-left:auto;">
+              <input id="fixed-yrs" type="number" value="30" min="5" max="40" onclick="event.stopPropagation();selectLoanMode('fixed')" oninput="event.stopPropagation();selectLoanMode('fixed')" style="width:52px;padding:5px 8px;border:0.5px solid #d0d0d8;border-radius:8px;font-size:13px;font-weight:600;text-align:center;outline:none;">
+              <span style="font-size:12px;color:#888;">年</span>
+            </div>
+          </div>
+
+          <!-- IO row -->
+          <div id="lt-io" onclick="selectLoanMode('io')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:0.5px solid #e0e0e8;cursor:pointer;background:#fff;">
+            <div id="lt-dot-io" style="width:18px;height:18px;border-radius:50%;border:1.5px solid #d0d0d8;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
+            <span style="font-size:13px;font-weight:500;color:#000;flex-shrink:0;">IO</span>
+            <div style="display:flex;align-items:center;gap:5px;margin-left:auto;">
+              <span style="font-size:11px;color:#aaa;flex-shrink:0;">共</span>
+              <input id="io-total-yrs" type="number" value="30" min="15" max="50" onclick="event.stopPropagation();selectLoanMode('io')" oninput="event.stopPropagation();selectLoanMode('io')" style="width:48px;padding:5px 8px;border:0.5px solid #d0d0d8;border-radius:8px;font-size:13px;font-weight:600;text-align:center;outline:none;">
+              <span style="font-size:11px;color:#aaa;flex-shrink:0;">年，前</span>
+              <input id="io-io-yrs" type="number" value="10" min="1" max="15" onclick="event.stopPropagation();selectLoanMode('io')" oninput="event.stopPropagation();selectLoanMode('io')" style="width:48px;padding:5px 8px;border:0.5px solid #d0d0d8;border-radius:8px;font-size:13px;font-weight:600;text-align:center;outline:none;">
+              <span style="font-size:11px;color:#aaa;flex-shrink:0;">年 IO</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Inputs -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+          <div>
+            <div style="font-size:11px;color:#888;margin-bottom:5px;">房价</div>
+            <input id="m-price" type="number" value="800000" oninput="calcMortgage()" style="width:100%;padding:10px 12px;border:0.5px solid #d0d0d8;border-radius:10px;font-size:14px;font-weight:500;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:11px;color:#888;margin-bottom:5px;">首付比例</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input id="m-dp" type="number" value="20" min="3" max="60" oninput="calcMortgage()" style="width:100%;padding:10px 12px;border:0.5px solid #d0d0d8;border-radius:10px;font-size:14px;font-weight:500;outline:none;">
+              <span style="font-size:14px;color:#888;">%</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#888;margin-bottom:5px;">年利率</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input id="m-rate" type="number" value="6.75" step="0.05" oninput="calcMortgage()" style="width:100%;padding:10px 12px;border:0.5px solid #d0d0d8;border-radius:10px;font-size:14px;font-weight:500;outline:none;">
+              <span style="font-size:14px;color:#888;">%</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#888;margin-bottom:5px;">首付金额</div>
+            <div id="m-dp-amt" style="padding:10px 12px;background:#f5f5f8;border-radius:10px;font-size:14px;font-weight:600;color:#1a56db;">$160,000</div>
+          </div>
+        </div>
+
+        <!-- IO explanation box -->
+        <div id="m-io-note" style="display:none;background:#faeeda;border-radius:10px;padding:10px 12px;margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:600;color:#633806;margin-bottom:3px;">Interest Only 说明</div>
+          <div style="font-size:11px;color:#854f0b;line-height:1.5;" id="m-io-text"></div>
+        </div>
+
+        <!-- Result cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+          <div style="background:#e6f1fb;border-radius:12px;padding:12px;">
+            <div style="font-size:10px;color:#0c447c;margin-bottom:4px;" id="m-p1-label">IO期月供</div>
+            <div style="font-size:20px;font-weight:700;color:#0c447c;" id="m-p1-val">—</div>
+            <div style="font-size:10px;color:#378add;margin-top:2px;" id="m-p1-sub">只还利息</div>
+          </div>
+          <div style="background:#e1f5ee;border-radius:12px;padding:12px;">
+            <div style="font-size:10px;color:#085041;margin-bottom:4px;" id="m-p2-label">还本期月供</div>
+            <div style="font-size:20px;font-weight:700;color:#085041;" id="m-p2-val">—</div>
+            <div style="font-size:10px;color:#1d9e75;margin-top:2px;" id="m-p2-sub">本金+利息</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+          <div style="background:#f5f5f8;border-radius:12px;padding:10px;">
+            <div style="font-size:9px;color:#aaa;margin-bottom:3px;">贷款金额</div>
+            <div style="font-size:13px;font-weight:700;color:#000;" id="m-loan">—</div>
+          </div>
+          <div style="background:#f5f5f8;border-radius:12px;padding:10px;">
+            <div style="font-size:9px;color:#aaa;margin-bottom:3px;">总利息</div>
+            <div style="font-size:13px;font-weight:700;color:#a32d2d;" id="m-total-int">—</div>
+          </div>
+          <div style="background:#f5f5f8;border-radius:12px;padding:10px;">
+            <div style="font-size:9px;color:#aaa;margin-bottom:3px;">总还款</div>
+            <div style="font-size:13px;font-weight:700;color:#000;" id="m-total-pay">—</div>
+          </div>
+        </div>
+
+        <!-- Amortization toggle -->
+        <div onclick="toggleAmort()" style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border:0.5px solid #e0e0e8;border-radius:12px;cursor:pointer;margin-bottom:8px;">
+          <span style="font-size:13px;color:#333;">还款时间表</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" id="amort-arrow" style="transition:transform 0.2s;"><path d="M2 4l4 4 4-4" stroke="#aaa" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </div>
+        <div id="amort-table" style="display:none;border:0.5px solid #e0e0e8;border-radius:12px;overflow:hidden;margin-bottom:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;background:#f5f5f8;padding:8px 12px;">
+            <div style="font-size:10px;font-weight:600;color:#555;">年份</div>
+            <div style="font-size:10px;font-weight:600;color:#555;">月供</div>
+            <div style="font-size:10px;font-weight:600;color:#555;">本金</div>
+            <div style="font-size:10px;font-weight:600;color:#555;">余额</div>
+          </div>
+          <div id="amort-rows" style="max-height:220px;overflow-y:auto;"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- INVEST CALCULATOR -->
+    <div id="calc-invest" style="display:none;">
+      <div style="padding:0 16px;">
+        <div style="font-size:11px;color:#888;margin-bottom:14px;line-height:1.5;">输入任意一套房源的参数，实时计算投资回报</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div><div style="font-size:11px;color:#888;margin-bottom:5px;">房价</div>
+            <input id="i-price" type="number" value="610000" oninput="calcInvest()" style="width:100%;padding:10px 12px;border:0.5px solid #d0d0d8;border-radius:10px;font-size:14px;font-weight:500;outline:none;"></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:5px;">预期月租</div>
+            <input id="i-rent" type="number" value="3200" oninput="calcInvest()" style="width:100%;padding:10px 12px;border:0.5px solid #d0d0d8;border-radius:10px;font-size:14px;font-weight:500;outline:none;"></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:5px;">边际税率</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input id="i-tax" type="number" value="35" oninput="calcInvest()" style="width:100%;padding:10px 12px;border:0.5px solid #d0d0d8;border-radius:10px;font-size:14px;font-weight:500;outline:none;">
+              <span style="font-size:14px;color:#888;">%</span>
+            </div>
+          </div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:5px;">HOA / 月</div>
+            <input id="i-hoa" type="number" value="200" oninput="calcInvest()" style="width:100%;padding:10px 12px;border:0.5px solid #d0d0d8;border-radius:10px;font-size:14px;font-weight:500;outline:none;"></div>
+        </div>
+
+        <!-- 地税 row -->
+        <div style="background:#f7f7fa;border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:10px;">地税估算</div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <div style="flex:1;">
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">税率 %</div>
+              <div style="display:flex;align-items:center;gap:5px;">
+                <input id="i-tax-rate" type="number" value="1.1" step="0.05" oninput="updateTaxFromRate()" style="width:100%;padding:8px 10px;border:0.5px solid #d0d0d8;border-radius:8px;font-size:13px;font-weight:500;outline:none;">
+                <span style="font-size:12px;color:#888;">%</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-end;padding-bottom:2px;color:#aaa;font-size:12px;">或</div>
+            <div style="flex:1;">
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">按 zip code 查</div>
+              <div style="display:flex;gap:5px;">
+                <input id="i-tax-zip" type="text" placeholder="如 94080" maxlength="5" style="width:100%;padding:8px 10px;border:0.5px solid #d0d0d8;border-radius:8px;font-size:13px;outline:none;">
+                <button onclick="lookupTaxRate()" style="padding:8px 10px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">查询</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:11px;color:#888;">每月地税估算</span>
+            <span style="font-size:13px;font-weight:700;color:#000;" id="i-tax-monthly">$559</span>
+          </div>
+        </div>
+
+        <!-- 保险 row -->
+        <div style="background:#f7f7fa;border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:600;color:#555;">房屋保险</div>
+            <div onclick="openInsuranceInfo()" style="width:20px;height:20px;border-radius:50%;background:#e6f1fb;color:#1a56db;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;">!</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input id="i-insurance" type="number" value="150" oninput="calcInvest()" style="flex:1;padding:8px 10px;border:0.5px solid #d0d0d8;border-radius:8px;font-size:13px;font-weight:500;outline:none;">
+            <span style="font-size:12px;color:#888;">元 / 月</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:11px;color:#888;">首付比例</span><span style="font-size:11px;font-weight:600;color:#000;" id="i-dp-lbl">20%</span></div>
+          <input type="range" min="10" max="40" step="1" value="20" id="i-dp" oninput="calcInvest()" style="width:100%;accent-color:#1a56db;">
+          <div style="display:flex;justify-content:space-between;margin-top:8px;margin-bottom:4px;"><span style="font-size:11px;color:#888;">贷款利率</span><span style="font-size:11px;font-weight:600;color:#000;" id="i-rate-lbl">6.75%</span></div>
+          <input type="range" min="4" max="9" step="0.1" value="6.75" id="i-rate" oninput="calcInvest()" style="width:100%;accent-color:#1a56db;">
+          <div style="display:flex;justify-content:space-between;margin-top:8px;margin-bottom:4px;"><span style="font-size:11px;color:#888;">年化增值率</span><span style="font-size:11px;font-weight:600;color:#000;" id="i-appr-lbl">5.0%</span></div>
+          <input type="range" min="0" max="15" step="0.5" value="5" id="i-appr" oninput="calcInvest()" style="width:100%;accent-color:#1a56db;">
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+          <div style="background:#e1f5ee;border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:9px;color:#085041;margin-bottom:3px;">综合 ROI</div>
+            <div style="font-size:18px;font-weight:700;color:#085041;" id="i-roi">—</div>
+          </div>
+          <div style="background:#eeedfe;border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:9px;color:#3c3489;margin-bottom:3px;">租金回报率</div>
+            <div style="font-size:18px;font-weight:700;color:#3c3489;" id="i-yield">—</div>
+          </div>
+          <div style="background:#faeeda;border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:9px;color:#633806;margin-bottom:3px;">月现金流</div>
+            <div style="font-size:18px;font-weight:700;color:#633806;" id="i-cf">—</div>
+          </div>
+        </div>
+
+        <div style="background:#f5f5f8;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">首付现金</span><span style="font-size:12px;font-weight:600;color:#000;" id="i-down">—</span></div>
+          <div style="height:0.5px;background:#e8e8e8;"></div>
+          <div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">每月房贷</span><span style="font-size:12px;font-weight:600;color:#a32d2d;" id="i-mort">—</span></div>
+          <div style="height:0.5px;background:#e8e8e8;"></div>
+          <div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">地税+保险+HOA</span><span style="font-size:12px;font-weight:600;color:#a32d2d;" id="i-hold-display">—</span></div>
+          <div style="height:0.5px;background:#e8e8e8;"></div>
+          <div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">年度税务抵扣</span><span style="font-size:12px;font-weight:600;color:#0f6e56;" id="i-taxben">—</span></div>
+          <div style="height:0.5px;background:#e8e8e8;"></div>
+          <div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#666;">年度资产增值</span><span style="font-size:12px;font-weight:600;color:#0f6e56;" id="i-apprval">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Insurance Info Overlay -->
+<div id="insurance-overlay" onclick="closeInsuranceInfo(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;justify-content:center;align-items:flex-end;">
+  <div style="background:#fff;width:100%;max-width:600px;border-radius:24px 24px 0 0;padding:20px 20px 40px;">
+    <div style="width:36px;height:4px;background:#e0e0e0;border-radius:99px;margin:0 auto 16px;cursor:pointer;" onclick="document.getElementById('insurance-overlay').style.display='none'"></div>
+    <div style="font-size:16px;font-weight:700;color:#000;margin-bottom:4px;">房屋保险参考</div>
+    <div style="font-size:13px;color:#888;margin-bottom:18px;">投资房建议年保费约为房价的 0.5–1%，以下是推荐的保险公司</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      <div style="border:0.5px solid #e0e0e8;border-radius:14px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:14px;font-weight:700;color:#000;">State Farm</div>
+          <div style="font-size:10px;font-weight:600;background:#e1f5ee;color:#085041;padding:3px 9px;border-radius:99px;">口碑好</div>
+        </div>
+        <div style="font-size:12px;color:#666;margin-bottom:10px;">适合单户投资房，理赔响应快，全美覆盖</div>
+        <div style="display:flex;gap:8px;">
+          <a href="tel:+18007328945" style="flex:1;padding:8px;background:#f0f0f5;border-radius:10px;text-align:center;font-size:12px;font-weight:600;color:#333;text-decoration:none;">📞 1-800-732-8945</a>
+          <a href="https://www.statefarm.com" target="_blank" style="flex:1;padding:8px;background:#e6f1fb;border-radius:10px;text-align:center;font-size:12px;font-weight:600;color:#1a56db;text-decoration:none;">官网询价 →</a>
+        </div>
+      </div>
+
+      <div style="border:0.5px solid #e0e0e8;border-radius:14px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:14px;font-weight:700;color:#000;">Lemonade</div>
+          <div style="font-size:10px;font-weight:600;background:#eeedfe;color:#3c3489;padding:3px 9px;border-radius:99px;">价格实惠</div>
+        </div>
+        <div style="font-size:12px;color:#666;margin-bottom:10px;">AI 驱动，在线投保，适合首次投资房业主</div>
+        <div style="display:flex;gap:8px;">
+          <a href="tel:+18447334633" style="flex:1;padding:8px;background:#f0f0f5;border-radius:10px;text-align:center;font-size:12px;font-weight:600;color:#333;text-decoration:none;">📞 1-844-733-4633</a>
+          <a href="https://www.lemonade.com" target="_blank" style="flex:1;padding:8px;background:#e6f1fb;border-radius:10px;text-align:center;font-size:12px;font-weight:600;color:#1a56db;text-decoration:none;">官网询价 →</a>
+        </div>
+      </div>
+
+      <div style="border:0.5px solid #e0e0e8;border-radius:14px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:14px;font-weight:700;color:#000;">Steadily</div>
+          <div style="font-size:10px;font-weight:600;background:#faeeda;color:#633806;padding:3px 9px;border-radius:99px;">投资房专属</div>
+        </div>
+        <div style="font-size:12px;color:#666;margin-bottom:10px;">专为出租房设计，覆盖租客损失、空置期</div>
+        <div style="display:flex;gap:8px;">
+          <a href="tel:+18336978339" style="flex:1;padding:8px;background:#f0f0f5;border-radius:10px;text-align:center;font-size:12px;font-weight:600;color:#333;text-decoration:none;">📞 1-833-697-8339</a>
+          <a href="https://www.steadily.com" target="_blank" style="flex:1;padding:8px;background:#e6f1fb;border-radius:10px;text-align:center;font-size:12px;font-weight:600;color:#1a56db;text-decoration:none;">官网询价 →</a>
+        </div>
+      </div>
+
+    </div>
+    <button onclick="closeInsuranceInfo()" style="width:100%;padding:12px;background:#f0f0f5;color:#333;border:none;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;margin-top:16px;">关闭</button>
+  </div>
+</div>
+
+</body>
+</html>
